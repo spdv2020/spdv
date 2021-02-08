@@ -1,0 +1,1 @@
+INSERT INTO spdv.usuarios (email, senha) VALUES ('admin@spdvadmin.com.br', encode(digest('spdv2021', 'sha256'), 'hex'));

@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"*.sql": "postgres"
+		},
+		"vscode-postgres.defaultConnection": "localhost"
+	}
+}

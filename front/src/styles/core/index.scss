@@ -1,0 +1,52 @@
+html,
+body,
+#app {
+  height: 100%;
+}
+
+// @import "variables.scss";
+// @import "transitions.scss";
+
+@import "../sbadmin/scss/sbadmin.scss";
+@import "~@fortawesome/fontawesome-free/css/all.css";
+
+.invalid-feedback {
+  display: block;
+  color: transparent;
+  font-size: 0%;
+
+  transition: font-size 800ms ease 300ms;
+}
+
+.was-validated :invalid ~ .invalid-feedback,
+.was-validated :invalid ~ .invalid-tooltip,
+.is-invalid ~ .invalid-feedback,
+.is-invalid ~ .invalid-tooltip {
+  font-size: 80%;
+
+  color: $form-feedback-invalid-color;
+}
+
+/* Let's get this party started */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  -webkit-border-radius: 0x;
+  border-radius: 0x;
+  background: theme-color('secondary');
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
+  width: 3px;
+}
+::-webkit-scrollbar-thumb:window-inactive {
+  background: theme-color('secondary');
+}
