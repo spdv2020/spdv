@@ -3,7 +3,7 @@ import json
 
 request = json.loads(request_raw)
 
-plan = plpy.prepare('SELECT pm.* FROM spdv.produto_marcas pm')
+plan = plpy.prepare('SELECT pm.* FROM spdv.produto_marcas pm WHERE pm.ativo = true')
 rv = plpy.execute(plan)
 
 data = []

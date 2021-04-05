@@ -1,1 +1,1 @@
-INSERT INTO spdv.usuarios (email, senha) VALUES ('admin@spdvadmin.com.br', encode(digest('spdv2021', 'sha256'), 'hex'));
+INSERT INTO spdv.usuarios (email, senha, nome) VALUES ('admin@spdvadmin.com.br', encode(digest('spdv2021', 'sha256'), 'base64'), 'Administrador');

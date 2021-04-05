@@ -18,12 +18,13 @@ validate(instance=body, schema={
 
 sql = """
   SELECT
-    u.id
+    u.id,
+    u.nome
     FROM
       spdv.usuarios u
     WHERE
       LOWER(u.email) = LOWER($1) AND 
-      u.senha = encode(public.digest($2, 'sha256'), 'hex')
+      u.senha = encode(public.digest($2, 'sha256'), 'base64')
 """
 
 email = body.get('email')
@@ -43,7 +44,8 @@ else:
   row = rv[0]
 
   payload = {
-    'sub': row['id']
+    'sub': row['id'],
+    'name': row['nome']
   }
 
   token = jwt.encode(payload, '#spdv202!', algorithm='HS256')

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION spdv.ins_produto_marcas(request_raw json) RETURNS json AS $$
+CREATE OR REPLACE FUNCTION spdv.alt_produto_marcas(request_raw json) RETURNS json AS $$
 import json
 from plpy import spiexceptions
 from jsonschema import validate
@@ -10,28 +10,26 @@ body = request.get('body')
 validate(instance=body, schema={
   'type': 'object',
   'properties': {
+    'id': { 'type': 'number' },
     'nome': { 'type': 'string' }
   },
-  'required': ['nome']
+  'required': ['nome', 'id']
 })
 
 request = json.loads(request_raw)
 
+id = body.get('id')
 nome = body.get('nome')
 
 sql = """
-  INSERT
-    INTO
-      spdv.produto_marcas (nome)
-    VALUES ($1)
-    RETURNING id
+  UPDATE spdv.produto_marcas s SET nome = $1 WHERE s.id = $2
 """
 
-plan = plpy.prepare(sql, ['text'])
+plan = plpy.prepare(sql, ['text', 'integer'])
 
 try:
-  rv = plpy.execute(plan, [nome])
-except spiexceptions.ExclusionViolation as e:
+  rv = plpy.execute(plan, [nome, id])
+except spiexceptions.UniqueViolation as e:
   response = {
     'code': 500,
     'body': {
@@ -39,15 +37,10 @@ except spiexceptions.ExclusionViolation as e:
     }
   }
 else:
-  row = rv[0]
-
-  marca_id = row['id']
-
   response = {
     'code': 201,
     'body': {
-      'marca_id': marca_id,
-      'message': 'Marca inserida com sucesso'
+      'message': 'Marca alterada com sucesso'
     }
   }
 

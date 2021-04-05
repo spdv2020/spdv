@@ -7,6 +7,8 @@ import Dashboard from '../views/admin/dashboard/Dashboard.vue'
 
 import ProductList from '../views/admin/produtos/List.vue'
 import UserList from '../views/admin/usuarios/List.vue'
+import BrandList from '../views/admin/marcas/List.vue'
+import Caixa from '../views/admin/caixa/Index.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -19,6 +21,16 @@ const routes: Array<RouteRecordRaw> = [
       title: process.env.VUE_APP_TITLE,
       version: process.env.VUE_APP_VERSION
     }),
+
+    beforeEnter: (to, from, next) => {
+      const token = window.localStorage.getItem('token')
+
+      if (token === null) {
+        next({ name: 'login' })
+      }
+
+      next()
+    },
 
     children: [
       {
@@ -38,6 +50,12 @@ const routes: Array<RouteRecordRaw> = [
 
         component: ProductList
       },
+      {
+        path: 'marcas',
+        name: 'admin.brand.list',
+
+        component: BrandList
+      },
 
       {
         path: 'usuarios',
@@ -49,13 +67,33 @@ const routes: Array<RouteRecordRaw> = [
   },
 
   {
+    path: '/admin/caixa',
+    name: 'admin.caixa',
+    component: Caixa
+  },
+
+  {
     path: '/login',
-    name: 'Login',
+    name: 'login',
     component: Login,
+
+    beforeEnter: (to, from, next) => {
+      const token = window.localStorage.getItem('token')
+
+      if (token === null) {
+        next()
+      }
+
+      next({ name: 'admin.dashboard' })
+    },
 
     props: {
       title: process.env.VUE_APP_TITLE
     }
+  },
+  {
+    path: '/',
+    redirect: '/admin/dashboard'
   }
 ]
 

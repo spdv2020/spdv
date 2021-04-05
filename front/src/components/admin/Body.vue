@@ -1,6 +1,6 @@
 <template>
   <!-- Page Heading -->
-  <div class="d-sm-flex align-iteml-center justify-content-between mb-4">
+  <div class="d-sm-flex align-item-center justify-content-between mb-4">
     <slot name="heading"></slot>
   </div>
 

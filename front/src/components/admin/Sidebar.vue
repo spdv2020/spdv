@@ -123,7 +123,8 @@ export default defineComponent({
         menus: [
           {
             name: 'Frente de caixa',
-            icon: 'fas fa-fw fa-dollar-sign'
+            icon: 'fas fa-fw fa-dollar-sign',
+            link: '/admin/caixa'
           }
         ]
       },
@@ -138,14 +139,7 @@ export default defineComponent({
           {
             name: 'Categorias',
             icon: 'fas fa-fw fa-cog',
-
-            subgroups: [
-              {
-                links: [
-                  { name: 'Subcategorias', link: '' }
-                ]
-              }
-            ]
+            link: '/admin/categorias'
           },
           {
             name: 'Marcas',

@@ -3,7 +3,9 @@ import json
 
 request = json.loads(request_raw)
 
-plan = plpy.prepare('SELECT u.id, u.email, u.data_criacao, u.data_atualizacao FROM spdv.usuarios u')
+body = request.get('body')
+
+plan = plpy.prepare('SELECT u.id, u.email, u.nome, u.data_criacao, u.data_atualizacao FROM spdv.usuarios u WHERE u.ativo = true')
 rv = plpy.execute(plan)
 
 data = []

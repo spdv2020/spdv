@@ -15,6 +15,8 @@ sql = """
       spdv.produtos p
     LEFT JOIN spdv.produto_tags t
       ON t.produto_id = p.id
+    WHERE
+      p.ativo = true
     GROUP BY
       p.id
 """

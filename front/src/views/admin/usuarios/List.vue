@@ -4,7 +4,7 @@
       <template v-slot:heading>
         <HeadingDefault name="Usuários">
           <template v-slot:right>
-            <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" @click="open()">
+            <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" @click="open(undefined)">
               <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar
             </button>
           </template>
@@ -16,30 +16,37 @@
         <div class="row">
           <div class="col-12">
             <!-- DataTales Example -->
-            <div class="card shadow mb-4">
-              <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Usuários</h6>
-              </div>
-              <div class="card-body">
-                <div class="table-responsive">
-                  <table class="table table-bordered" cellspacing="0">
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Nome</th>
-                        <th>Data atualização</th>
-                        <th>Data criação</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr v-for="usuario in usuarios" :key="usuario.id">
-                        <td>{{ usuario.id }}</td>
-                        <td>{{ usuario.email }}</td>
-                        <td>{{ usuario.data_atualizacao }}</td>
-                        <td>{{ usuario.data_criacao }}</td>
-                      </tr>
-                    </tbody>
-                  </table>
+            <DataTable
+              name="Usuários"
+              :columns="columns"
+
+              entitiyKey="id"
+              :entities="entities"
+            >
+              <template v-slot:actions="{ selected }">
+                <div class="d-flex justify-content-end">
+                  <button type="button" class="btn btn-secondary btn-sm mr-1" @click="open(selected)">Editar</button>
+                  <button type="button" class="btn btn-danger btn-sm" :disabled="userId === selected?.id" @click="openExcluir(selected)">Excluir</button>
+                </div>
+              </template>
+            </DataTable>
+          </div>
+
+          <div ref="modalExcluirRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">Excluir usuário</h5>
+                  <button class="close" type="button" @click="close()" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <h6 v-if="!!selected">Tem certeza que deseja excluir o usuário "{{ selected.nome }}"?</h6>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
+                  <button type="button" class="btn btn-primary" @click="excluir()">Excluir</button>
                 </div>
               </div>
             </div>
@@ -50,12 +57,27 @@
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title">Cadastro de usuário</h5>
+                    <h5 class="modal-title">{{ selected === null ? 'Cadastrar usuário' : 'Editar usuário' }}</h5>
                     <button class="close" type="button" @click="close()" aria-label="Close">
                       <span aria-hidden="true">×</span>
                     </button>
                   </div>
                   <div class="modal-body">
+                    <div class="form-group">
+                      <label for="nome">Nome</label>
+                      <input
+                        type="text"
+                        id="nome"
+                        class="form-control"
+                        autocomplete="off"
+                        name="nome"
+                        v-model="nome"
+                        :class="{ 'is-invalid': !!errors.nome }"
+                      />
+                      <div class="invalid-feedback">
+                        <small>{{ errors.nome || 'default' }}</small>
+                      </div>
+                    </div>
                     <div class="form-group">
                       <label for="email">Email</label>
                       <input
@@ -74,8 +96,7 @@
                     <div class="form-group">
                       <label for="senha">Senha</label>
                       <input
-                        ref="inputRef"
-                        type="text"
+                        type="password"
                         id="senha"
                         class="form-control"
                         autocomplete="off"
@@ -87,11 +108,26 @@
                         <small>{{ errors.senha || 'default' }}</small>
                       </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                  <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
-                  <button type="submit" class="btn btn-primary" href="login.html">Salvar</button>
-                </div>
+                    <div class="form-group">
+                      <label for="senha">Confirmar senha</label>
+                      <input
+                        type="password"
+                        id="confirm-senha"
+                        class="form-control"
+                        autocomplete="off"
+                        name="confirmar_senha"
+                        v-model="confirar_senha"
+                        :class="{ 'is-invalid': !!errors.confirmar_senha }"
+                      />
+                      <div class="invalid-feedback">
+                        <small>{{ errors.confirmar_senha || 'default' }}</small>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                  </div>
                 </div>
               </div>
             </form>
@@ -103,12 +139,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref } from 'vue'
+import { defineComponent, onMounted, ref, computed } from 'vue'
 
 import AdminBody from '@/components/admin/Body.vue'
 import HeadingDefault from '@/components/admin/HeadingDefault.vue'
-
-import useFetchEntities from '@/hooks/fetchEntities'
+import DataTable from '@/components/DataTable/DataTable.vue'
 
 import { Modal } from 'bootstrap'
 
@@ -116,37 +151,69 @@ import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 
 import { execute } from '@/api'
-
-interface Usuario {
-  id: number;
-  email: string;
-  data_atualizacao: string;
-  data_criacao: string;
-}
+import usePagination from '@/hooks/pagination'
 
 export default defineComponent({
-  name: 'ProductList',
+  name: 'UserList',
   components: {
     AdminBody,
-    HeadingDefault
+    HeadingDefault,
+    DataTable
   },
 
   setup () {
+    const userId = computed((): string => {
+      const token = window.localStorage.getItem('token') ?? ''
+
+      const [_, payloadString] = token.split('.')
+
+      const payload = JSON.parse(window.atob(payloadString))
+
+      return payload.sub as string
+    })
+
     let modal: Modal | null = null
     const modalRef = ref<Element>()
 
-    const { entities: usuarios, fetchEntities: fetchUsuarios } = useFetchEntities<Usuario>('/usuarios')
+    let modalExcluir: Modal | null = null
+    const modalExcluirRef = ref<Element>()
 
     const schema = yup.object({
       email: yup.string().email().required(),
-      senha: yup.string().min(8).required()
+      nome: yup.string().min(3).required(),
+      senha: yup.string().min(8).required(),
+      confirmar_senha: yup.string().required().test('match-pwd', 'As senhas devem ser iguais', function (value) {
+        return this.parent.senha === value
+      })
     })
 
-    const { errors, handleSubmit, resetForm } = useForm({ validationSchema: schema })
+    const { errors, handleSubmit, resetForm, setFieldError } = useForm({ validationSchema: schema })
 
-    function open () {
+    const selected = ref<any>(null)
+    const { value: email } = useField('email')
+    const { value: senha } = useField('senha')
+    const { value: confirar_senha } = useField('confirmar_senha')
+    const { value: nome } = useField('nome')
+
+    function open (item: Record<string, string | undefined> | undefined) {
+      if (typeof item !== 'undefined') {
+        selected.value = item
+        nome.value = item.nome as string
+        email.value = item.email as string
+      }
+
       if (modal) {
         modal.show()
+      }
+    }
+
+    function openExcluir (item: Record<string, string | undefined> | undefined) {
+      if (typeof item !== 'undefined') {
+        selected.value = item
+      }
+
+      if (modalExcluir) {
+        modalExcluir.show()
       }
     }
 
@@ -155,27 +222,71 @@ export default defineComponent({
         modal.hide()
         resetForm()
       }
+      if (modalExcluir) {
+        modalExcluir.hide()
+      }
+
+      selected.value = null
     }
 
-    const { value: email } = useField('email')
-    const { value: senha } = useField('senha')
+    const { entities, fetchEntities, columns } = usePagination('/usuarios', [{
+      key: 'id',
+      label: '#',
+      type: 'numeric'
+    }, {
+      key: 'nome',
+      label: 'Nome'
+    }, {
+      key: 'email',
+      label: 'Email'
+    }, {
+      key: 'data_atualizacao',
+      label: 'Atualizado em',
+      type: 'datetime'
+    }, {
+      key: 'data_criacao',
+      label: 'Criado em',
+      type: 'datetime'
+    }])
 
-    const onSubmit = handleSubmit(async ({ email, senha }) => {
-      await execute('POST', '/usuarios', {
-        email,
-        senha
-      })
+    const onSubmit = handleSubmit(async ({ email, senha, nome }) => {
+      try {
+        await execute('POST', '/usuarios', {
+          email,
+          senha,
+          nome
+        })
 
-      close()
-      fetchUsuarios()
+        fetchEntities()
+
+        close()
+      } catch (e) {
+        setFieldError('email', e.message)
+      }
     })
+
+    const excluir = async () => {
+      try {
+        await execute('DELETE', '/usuarios', {
+          id: selected.value.id
+        })
+
+        fetchEntities()
+        close()
+      } catch (e) {
+      }
+    }
 
     onMounted(() => {
       modal = new Modal(modalRef.value as Element, {
-        backdrop: 'static'
+        backdrop: 'static',
+        keyboard: false
       })
-
-      fetchUsuarios()
+      modalExcluir = new Modal(modalExcluirRef.value as Element, {
+        backdrop: 'static',
+        keyboard: false
+      })
+      fetchEntities()
     })
 
     return {
@@ -183,12 +294,19 @@ export default defineComponent({
       open,
       close,
 
-      usuarios,
-
+      selected,
       errors,
       email,
       senha,
-      onSubmit
+      confirar_senha,
+      nome,
+      onSubmit,
+      entities,
+      columns,
+      modalExcluirRef,
+      openExcluir,
+      excluir,
+      userId
     }
   }
 })

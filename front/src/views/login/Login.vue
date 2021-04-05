@@ -38,17 +38,17 @@
                         placeholder="Senha"
                         name="password"
                         v-model="password"
-                        :class="{ 'is-invalid': !!errors.password }"
+                        :class="{ 'is-invalid': !!errors.password || !!errorMessage }"
                       />
                       <div class="invalid-feedback">
-                        <small>{{ errors.password || 'default' }}</small>
+                        <small>{{ errors.password || errorMessage || 'default' }}</small>
                       </div>
                     </div>
                     <div class="form-group">
-                      <div class="custom-control custom-checkbox small">
+                      <!-- <div class="custom-control custom-checkbox small">
                         <input type="checkbox" class="custom-control-input" id="customCheck" />
                         <label class="custom-control-label" for="customCheck">Lembrar-me</label>
-                      </div>
+                      </div> -->
                     </div>
                     <button type="submit" class="btn btn-primary btn-block">Login</button>
                   </form>
@@ -67,12 +67,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 
 import { useRouter } from 'vue-router'
 
 import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
+
+import { execute } from '@/api'
 
 export default defineComponent({
   name: 'Login',
@@ -84,6 +86,8 @@ export default defineComponent({
   setup () {
     const router = useRouter()
 
+    const errorMessage = ref('')
+
     const schema = yup.object({
       username: yup.string().required().email(),
       password: yup.string().required().min(8)
@@ -94,9 +98,21 @@ export default defineComponent({
     const { value: username } = useField('username')
     const { value: password } = useField('password')
 
-    const onSubmit = handleSubmit(values => {
-      console.log(values)
-      router.push({ name: 'admin.dashboard' })
+    const onSubmit = handleSubmit(async ({ username, password }) => {
+      errorMessage.value = ''
+
+      try {
+        const { token } = await execute('POST', '/login', {
+          email: username,
+          senha: password
+        })
+
+        window.localStorage.setItem('token', token)
+
+        router.push({ name: 'admin.dashboard' })
+      } catch (e) {
+        errorMessage.value = e.message
+      }
     })
 
     return {
@@ -105,7 +121,8 @@ export default defineComponent({
       username,
       password,
 
-      onSubmit
+      onSubmit,
+      errorMessage
     }
   }
 })

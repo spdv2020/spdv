@@ -1,5 +1,6 @@
 CREATE OR REPLACE FUNCTION spdv.ins_usuarios(request_raw json) RETURNS json AS $$
 import json
+from plpy import spiexceptions
 from jsonschema import validate
 
 request = json.loads(request_raw)
@@ -10,28 +11,30 @@ validate(instance=body, schema={
   'type': 'object',
   'properties': {
     'email': { 'type': 'string' },
-    'senha': { 'type': 'string' }
+    'senha': { 'type': 'string' },
+    'nome':  { 'type': 'string' }
   },
-  'required': ['email', 'senha']
+  'required': ['email', 'senha', 'nome']
 })
 
 email = body.get('email')
 senha = body.get('senha')
+nome = body.get('nome')
 
 sql = """
   INSERT
     INTO
-      spdv.usuarios (email, senha)
+      spdv.usuarios (email, senha, nome)
     VALUES
-      ($1, encode(public.digest($2, 'sha256'), 'hex'))
+      ($1, encode(public.digest($2, 'sha256'), 'base64'), $3)
     RETURNING id
 """
 
-plan = plpy.prepare(sql, ['text', 'text'])
+plan = plpy.prepare(sql, ['text', 'text', 'text'])
 
 try:
-  rv = plpy.execute(plan, [email, senha])
-except spiexceptions.UniqueViolation as e:
+  rv = plpy.execute(plan, [email, senha, nome])
+except spiexceptions.ExclusionViolation as e:
   response = {
     'code': 500,
     'body': {
