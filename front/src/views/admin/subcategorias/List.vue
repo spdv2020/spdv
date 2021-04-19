@@ -2,7 +2,7 @@
   <div>
     <AdminBody>
       <template v-slot:heading>
-        <HeadingDefault name="Usuários">
+        <HeadingDefault name="Subcategorias">
           <template v-slot:right>
             <button class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm" @click="open(undefined)">
               <i class="fas fa-plus fa-sm text-white-50"></i> Adicionar
@@ -17,7 +17,7 @@
           <div class="col-12">
             <!-- DataTales Example -->
             <DataTable
-              name="Usuários"
+              name="Subcategorias"
               :columns="columns"
 
               entitiyKey="id"
@@ -26,7 +26,7 @@
               <template v-slot:actions="{ selected }">
                 <div class="d-flex justify-content-end">
                   <button type="button" class="btn btn-secondary btn-sm mr-1" @click="open(selected)">Editar</button>
-                  <button type="button" class="btn btn-danger btn-sm" :disabled="userId === selected?.id" @click="openExcluir(selected)">Excluir</button>
+                  <button type="button" class="btn btn-danger btn-sm" @click="openExcluir(selected)">Excluir</button>
                 </div>
               </template>
             </DataTable>
@@ -36,13 +36,13 @@
             <div class="modal-dialog" role="document">
               <div class="modal-content">
                 <div class="modal-header">
-                  <h5 class="modal-title">Excluir usuário</h5>
+                  <h5 class="modal-title">Excluir subcategoria</h5>
                   <button class="close" type="button" @click="close()" aria-label="Close">
                     <span aria-hidden="true">×</span>
                   </button>
                 </div>
                 <div class="modal-body">
-                  <h6 v-if="!!selected">Tem certeza que deseja excluir o usuário "{{ selected.nome }}"?</h6>
+                  <h6 v-if="!!selected">Tem certeza que deseja excluir a subcategoria "{{ selected.nome }}"?</h6>
                 </div>
                 <div class="modal-footer">
                   <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
@@ -57,14 +57,14 @@
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title">{{ selected === null ? 'Cadastrar usuário' : 'Editar usuário' }}</h5>
+                    <h5 class="modal-title">{{ selected === null ? 'Cadastrar marca' : 'Editar marca' }}</h5>
                     <button class="close" type="button" @click="close()" aria-label="Close">
                       <span aria-hidden="true">×</span>
                     </button>
                   </div>
                   <div class="modal-body">
                     <div class="form-group">
-                      <label for="nome">Nome</label>
+                      <label for="email">Nome</label>
                       <input
                         type="text"
                         id="nome"
@@ -79,55 +79,28 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <label for="email">Email</label>
-                      <input
-                        type="text"
-                        id="email"
+                      <label for="categoria_id">Categoria</label>
+                      <select
+                        id="categoria_id"
                         class="form-control"
                         autocomplete="off"
-                        name="email"
-                        v-model="email"
-                        :class="{ 'is-invalid': !!errors.email }"
-                      />
+                        name="categoria_id"
+                        v-model="categoria_id"
+                        :class="{ 'is-invalid': !!errors.categoria_id }"
+                        style="width: 100%; display: none;"
+                      >
+                        <option value="">Selecione uma marca</option>
+                        <option v-for="categoria in categorias" :value="categoria.id" :key="categoria.id">{{ categoria.nome }}</option>
+                      </select>
                       <div class="invalid-feedback">
-                        <small>{{ errors.email || 'default' }}</small>
+                        <small>{{ errors.categoria_id || 'default' }}</small>
                       </div>
                     </div>
-                    <div class="form-group">
-                      <label for="senha">Senha</label>
-                      <input
-                        type="password"
-                        id="senha"
-                        class="form-control"
-                        autocomplete="off"
-                        name="senha"
-                        v-model="senha"
-                        :class="{ 'is-invalid': !!errors.senha }"
-                      />
-                      <div class="invalid-feedback">
-                        <small>{{ errors.senha || 'default' }}</small>
-                      </div>
-                    </div>
-                    <div class="form-group">
-                      <label for="senha">Confirmar senha</label>
-                      <input
-                        type="password"
-                        id="confirm-senha"
-                        class="form-control"
-                        autocomplete="off"
-                        name="confirmar_senha"
-                        v-model="confirar_senha"
-                        :class="{ 'is-invalid': !!errors.confirmar_senha }"
-                      />
-                      <div class="invalid-feedback">
-                        <small>{{ errors.confirmar_senha || 'default' }}</small>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="modal-footer">
-                    <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button class="btn btn-link" type="button" @click="close()">Cancelar</button>
+                  <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
                 </div>
               </div>
             </form>
@@ -139,11 +112,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onMounted, ref, computed } from 'vue'
+import { defineComponent, onMounted, ref } from 'vue'
 
 import AdminBody from '@/components/admin/Body.vue'
 import HeadingDefault from '@/components/admin/HeadingDefault.vue'
 import DataTable from '@/components/DataTable/DataTable.vue'
+
+import usePagination from '@/hooks/pagination'
+import useFetchEntities from '@/hooks/fetchEntities'
 
 import { Modal } from 'bootstrap'
 
@@ -151,10 +127,19 @@ import * as yup from 'yup'
 import { useForm, useField } from 'vee-validate'
 
 import { execute } from '@/api'
-import usePagination from '@/hooks/pagination'
+
+import $ from 'jquery'
+import 'select2'
+
+interface ProdutoMarca {
+  id: number;
+  nome: string;
+  data_atualizacao: string;
+  data_criacao: string;
+}
 
 export default defineComponent({
-  name: 'UserList',
+  name: 'ProductList',
   components: {
     AdminBody,
     HeadingDefault,
@@ -162,16 +147,6 @@ export default defineComponent({
   },
 
   setup () {
-    const userId = computed((): string => {
-      const token = window.localStorage.getItem('token') ?? ''
-
-      const [_, payloadString] = token.split('.')
-
-      const payload = JSON.parse(window.atob(payloadString))
-
-      return payload.sub as string
-    })
-
     let modal: Modal | null = null
     const modalRef = ref<Element>()
 
@@ -179,27 +154,33 @@ export default defineComponent({
     const modalExcluirRef = ref<Element>()
 
     const schema = yup.object({
-      email: yup.string().email().required(),
       nome: yup.string().min(3).required(),
-      senha: yup.string().min(8).required(),
-      confirmar_senha: yup.string().required().test('match-pwd', 'As senhas devem ser iguais', function (value) {
-        return this.parent.senha === value
-      })
+      categoria_id: yup.string().required()
     })
 
     const { errors, handleSubmit, resetForm, setFieldError } = useForm({ validationSchema: schema })
 
     const selected = ref<any>(null)
-    const { value: email } = useField('email')
-    const { value: senha } = useField('senha')
-    const { value: confirar_senha } = useField('confirmar_senha')
     const { value: nome } = useField('nome')
+    const { value: categoria_id } = useField('categoria_id')
 
     function open (item: Record<string, string | undefined> | undefined) {
+      $('[name=categoria_id]').select2({
+        theme: 'bootstrap4'
+      }).on('select2:select', function (e) {
+        const v = Number(e.params.data.id)
+        if (v === 0) {
+          categoria_id.value = ''
+        } else {
+          categoria_id.value = v
+        }
+      })
+
       if (typeof item !== 'undefined') {
         selected.value = item
         nome.value = item.nome as string
-        email.value = item.email as string
+        categoria_id.value = item.categoria_id as string ?? ''
+        $('[name=categoria_id]').val(categoria_id.value).trigger('change')
       }
 
       if (modal) {
@@ -226,19 +207,20 @@ export default defineComponent({
         modalExcluir.hide()
       }
 
+      $('[name=categoria_id]').select2('destroy')
+
       selected.value = null
     }
 
-    const { entities, fetchEntities, columns } = usePagination('/usuarios', [{
+    const { entities: categorias, fetchEntities: fetchCategorias } = useFetchEntities('/produtos/categorias')
+
+    const { entities, fetchEntities, columns } = usePagination('/produtos/subcategorias', [{
       key: 'id',
       label: '#',
       type: 'numeric'
     }, {
       key: 'nome',
       label: 'Nome'
-    }, {
-      key: 'email',
-      label: 'Email'
     }, {
       key: 'data_atualizacao',
       label: 'Atualizado em',
@@ -249,34 +231,31 @@ export default defineComponent({
       type: 'datetime'
     }])
 
-    const onSubmit = handleSubmit(async ({ email, senha, nome }) => {
+    const onSubmit = handleSubmit(async ({ nome, categoria_id }) => {
       try {
         if (!selected.value?.id) {
-          await execute('POST', '/usuarios', {
-            email,
-            senha,
-            nome
+          await execute('POST', '/produtos/subcategorias', {
+            nome,
+            categoria_id
           })
         } else {
-          await execute('PATCH', '/usuarios', {
-            email,
-            senha,
+          await execute('PATCH', '/produtos/subcategorias', {
+            id: selected.value?.id,
             nome,
-            id: selected.value?.id
+            categoria_id
           })
         }
 
-        fetchEntities()
-
         close()
+        fetchEntities()
       } catch (e) {
-        setFieldError('email', e.message)
+        setFieldError('nome', e.message)
       }
     })
 
     const excluir = async () => {
       try {
-        await execute('DELETE', '/usuarios', {
+        await execute('DELETE', '/produtos/subcategorias', {
           id: selected.value.id
         })
 
@@ -295,27 +274,29 @@ export default defineComponent({
         backdrop: 'static',
         keyboard: false
       })
+
       fetchEntities()
+      fetchCategorias()
     })
 
     return {
       modalRef,
+      modalExcluirRef,
       open,
       close,
-
-      selected,
-      errors,
-      email,
-      senha,
-      confirar_senha,
-      nome,
-      onSubmit,
-      entities,
       columns,
-      modalExcluirRef,
+
+      entities,
       openExcluir,
+      selected,
+
+      errors,
+      nome,
       excluir,
-      userId
+      onSubmit,
+
+      categorias,
+      categoria_id
     }
   }
 })

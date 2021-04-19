@@ -51,7 +51,7 @@
         </div>
       </div>
       <div class="col-sm-3 bg-white content content-form">
-        <form>
+        <form @submit.prevent="buscarAdicionar">
           <div class="form-group input-group-lg">
             <label for="nome">Código de barras</label>
             <input
@@ -60,7 +60,7 @@
               class="form-control"
               autocomplete="off"
               name="nome"
-              readonly
+              v-model="codigoBarras"
             />
           </div>
           <div class="form-group input-group-lg">
@@ -82,6 +82,7 @@
               class="form-control"
               autocomplete="off"
               name="nome"
+              v-model="qnt"
             />
           </div>
           <div class="form-group input-group-lg">
@@ -95,6 +96,8 @@
               name="nome"
             />
           </div>
+
+          <button style="display: none;" type="submit">Add</button>
         </form>
       </div>
     </div>
@@ -175,18 +178,21 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue'
 
 import onScan from 'onscan.js'
 import hotkeys from 'hotkeys-js'
 
-console.log(onScan)
 export default defineComponent({
   name: 'FrenteCaixa',
   setup () {
+    const qnt = ref('1')
+    const codigoBarras = ref('')
+
     onMounted(() => {
       hotkeys('f1', (e) => {
         e.preventDefault()
+        alert('opa')
       })
 
       hotkeys('f2', (e) => {
@@ -211,7 +217,16 @@ export default defineComponent({
       onScan.detachFrom(document)
     })
 
-    return {}
+    function buscarAdicionar () {
+      alert(codigoBarras.value)
+    }
+
+    return {
+      qnt,
+      codigoBarras,
+
+      buscarAdicionar
+    }
   }
 })
 </script>

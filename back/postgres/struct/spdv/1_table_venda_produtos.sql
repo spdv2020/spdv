@@ -2,9 +2,9 @@ CREATE TABLE spdv.venda_produtos
 (
   id bigserial NOT NULL,
   valor_unit real NOT NULL,
-  valor_desconto real NOT NULL,
+  valor_desconto real NOT NULL DEFAULT 0,
 
-  quantidade integer NOT NULL,
+  quantidade integer NOT NULL DEFAULT 1,
 
   venda_id bigint NOT NULL,
   produto_id bigint NOT NULL,

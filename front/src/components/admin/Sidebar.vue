@@ -142,22 +142,27 @@ export default defineComponent({
             link: '/admin/categorias'
           },
           {
+            name: 'Subcategorias',
+            icon: 'fas fa-fw fa-cog',
+            link: '/admin/subcategorias'
+          },
+          {
             name: 'Marcas',
             icon: 'fas fa-fw fa-cog',
             link: '/admin/marcas'
           }
         ]
       },
-      {
-        name: 'Relatórios',
-        menus: [
-          {
-            name: 'Vendas',
-            icon: 'fas fa-fw fa-cog',
-            link: undefined
-          }
-        ]
-      },
+      // {
+      //   name: 'Relatórios',
+      //   menus: [
+      //     {
+      //       name: 'Vendas',
+      //       icon: 'fas fa-fw fa-cog',
+      //       link: undefined
+      //     }
+      //   ]
+      // },
       {
         name: 'Configurações',
         menus: [

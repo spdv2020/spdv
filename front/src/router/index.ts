@@ -9,6 +9,8 @@ import ProductList from '../views/admin/produtos/List.vue'
 import UserList from '../views/admin/usuarios/List.vue'
 import BrandList from '../views/admin/marcas/List.vue'
 import Caixa from '../views/admin/caixa/Index.vue'
+import Categorias from '../views/admin/categorias/List.vue'
+import Subcategorias from '../views/admin/subcategorias/List.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -55,6 +57,18 @@ const routes: Array<RouteRecordRaw> = [
         name: 'admin.brand.list',
 
         component: BrandList
+      },
+      {
+        path: 'categorias',
+        name: 'admin.categorias.list',
+
+        component: Categorias
+      },
+      {
+        path: 'subcategorias',
+        name: 'admin.subcategorias.list',
+
+        component: Subcategorias
       },
 
       {

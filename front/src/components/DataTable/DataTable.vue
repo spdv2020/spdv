@@ -8,7 +8,7 @@
     </div>
     <div class="card-body">
       <div class="table-responsive">
-        <table class="table table-bordered table-hover" cellspacing="0">
+        <table ref="table" class="table table-bordered table-hover" cellspacing="0">
           <thead>
             <tr>
               <th v-for="column in columns" :key="column.key" :class="{ numeric: ['numeric', 'money'].indexOf(column.type ?? '') !== -1 }">
@@ -44,11 +44,15 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, toRefs } from 'vue'
+import { defineComponent, PropType, ref, toRefs, onMounted } from 'vue'
 
 import type { Column } from '@/hooks/pagination'
 
 import moment from 'moment'
+
+import * as $ from 'jquery'
+
+// const dt = createDt(window, $)
 
 export default defineComponent({
   name: 'DataTable',
@@ -71,9 +75,14 @@ export default defineComponent({
     }
   },
   setup (props) {
+    const table = ref<Element>()
     const { entities, entitiyKey } = toRefs(props)
 
     const selected = ref<string | number>(-1)
+
+    onMounted(() => {
+      // dt(table.value as Element).DataTable()
+    })
 
     function toggleSelected (key: string | undefined) {
       if (typeof key === 'undefined') {
@@ -122,7 +131,9 @@ export default defineComponent({
       selected,
       toggleSelected,
       isSelected,
-      getSelected
+      getSelected,
+
+      table
     }
   }
 })

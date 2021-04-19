@@ -11,3 +11,10 @@ ALTER TABLE spdv.vendas
   ON UPDATE NO ACTION
   ON DELETE NO ACTION
   NOT VALID;
+
+ALTER TABLE spdv.vendas
+  ADD CONSTRAINT fkc_spd_ven_usid FOREIGN KEY (usuario_id)
+  REFERENCES spdv.usuarios (id)
+  ON UPDATE NO ACTION
+  ON DELETE NO ACTION
+  NOT VALID;

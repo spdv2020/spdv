@@ -13,9 +13,23 @@ app.use(cors())
 app.use(bodyParser.json())
 
 app.all('*', async (req: express.Request, res: express.Response) => {
+  const authorization = req.headers['authorization']
+
+  let userId = null
+  if (authorization) {
+    const [_, payloadString] = authorization.split('.')
+
+    const payload = JSON.parse(Buffer.from(payloadString, 'base64').toString('ascii'))
+
+    userId = payload.sub
+  }
+
+  console.log({ userId })
+
   const result = await execute({
     route: req.path,
     headers: req.headers,
+    userId: userId,
     body: req.body,
     method: req.method
   })

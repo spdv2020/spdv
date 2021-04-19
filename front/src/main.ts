@@ -13,9 +13,9 @@ import { setLocale } from 'yup'
 declare global {
   interface Window {
     onScan: any;
+    $: any;
   }
 }
-
 setLocale({
   mixed: {
     required: 'Campo obrigatório'

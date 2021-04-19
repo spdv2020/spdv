@@ -6,3 +6,5 @@ declare module '*.vue' {
 }
 
 declare module 'onscan.js';
+declare module 'datatables.net'
+declare module 'barcoder'

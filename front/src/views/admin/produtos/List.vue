@@ -95,7 +95,7 @@
                       </div>
                     </div>
                     <div class="form-group">
-                      <label for="valor_unit">Código de Barras <small>(Opcional)</small></label>
+                      <label for="valor_unit">Código de Barras</label>
                       <input
                         ref="inputRef"
                         type="text"
@@ -163,6 +163,8 @@ import { execute } from '@/api'
 import $ from 'jquery'
 import 'select2'
 
+import Barcoder from 'barcoder'
+
 interface Produto {
   id: number;
   nome: string;
@@ -189,7 +191,9 @@ export default defineComponent({
     const schema = yup.object({
       nome: yup.string().required(),
       valor_unit: yup.number().required(),
-      codigo_barras: yup.string().max(13),
+      codigo_barras: yup.string().max(13).required().test('ean', 'O código de barras deve ser valido', function (value) {
+        return Barcoder.validate(value)
+      }),
       marca_id: yup.string()
     })
 
@@ -205,13 +209,18 @@ export default defineComponent({
       $('[name=marca_id]').select2({
         theme: 'bootstrap4'
       }).on('select2:select', function (e) {
-        marca_id.value = Number(e.params.data.id)
+        const v = Number(e.params.data.id)
+        if (v === 0) {
+          marca_id.value = ''
+        } else {
+          marca_id.value = v
+        }
       })
 
       if (typeof item !== 'undefined') {
         selected.value = item
         nome.value = item.nome as string
-        valor_unit.value = item.valor_unit as string
+        valor_unit.value = Number(item.valor_unit as string).toFixed(2)
         codigo_barras.value = item.codigo_barras as string ?? ''
         marca_id.value = item.marca_id as string ?? ''
         $('[name=marca_id]').val(marca_id.value).trigger('change')
@@ -275,7 +284,7 @@ export default defineComponent({
             nome,
             valor_unit: Number(valor_unit),
             codigo_barras,
-            marca_id: Number(marca_id) ?? null
+            marca_id: Number(marca_id) || null
           })
         } else {
           await execute('PATCH', '/produtos', {
@@ -283,7 +292,7 @@ export default defineComponent({
             nome,
             valor_unit: Number(valor_unit),
             codigo_barras,
-            marca_id: Number(marca_id) ?? null
+            marca_id: Number(marca_id) || null
           })
         }
 
