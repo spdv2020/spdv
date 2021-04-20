@@ -10,10 +10,17 @@ import './styles/core'
 
 import { setLocale } from 'yup'
 
+import $ from 'jquery'
+import dt from 'datatables.net'
+
+window.$ = $
+window.$.fn.DataTable = dt
+
 declare global {
   interface Window {
     onScan: any;
     $: any;
+    dt: any;
   }
 }
 setLocale({

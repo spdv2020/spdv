@@ -8,3 +8,4 @@ declare module '*.vue' {
 declare module 'onscan.js';
 declare module 'datatables.net'
 declare module 'barcoder'
+declare module 'datatables.net-dt'

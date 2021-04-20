@@ -9,6 +9,8 @@ body,
 
 @import "../sbadmin/scss/sbadmin.scss";
 @import "~@fortawesome/fontawesome-free/css/all.css";
+@import '~datatables.net-dt/css/jquery.dataTables.css';
+@import '~datatables.net-bs4/css/dataTables.bootstrap4.css';
 
 .invalid-feedback {
   display: block;

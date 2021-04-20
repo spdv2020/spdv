@@ -9,20 +9,20 @@
     <div class="card-body">
       <div class="table-responsive">
         <table ref="table" class="table table-bordered table-hover" cellspacing="0">
-          <thead>
+          <!-- <thead>
             <tr>
               <th v-for="column in columns" :key="column.key" :class="{ numeric: ['numeric', 'money'].indexOf(column.type ?? '') !== -1 }">
                 {{ column.label }}
               </th>
             </tr>
-          </thead>
-          <tbody>
+          </thead> -->
+          <!-- <tbody>
             <tr v-for="entity in entities" :key="entity[entitiyKey]" @click="toggleSelected(entity[entitiyKey])" :class="{ 'table-active': isSelected(entity[entitiyKey]) }">
               <td v-for="column in columns" :key="`${entity[entitiyKey]}-${column.key}`" :class="{ numeric: ['numeric', 'money'].indexOf(column.type ?? '') !== -1 }">
                 {{ format(entity[column.key], column.type) }}
               </td>
             </tr>
-          </tbody>
+          </tbody> -->
         </table>
       </div>
     </div>
@@ -44,15 +44,11 @@
 </style>
 
 <script lang="ts">
-import { defineComponent, PropType, ref, toRefs, onMounted } from 'vue'
+import { defineComponent, PropType, ref, toRefs, onMounted, onBeforeMount, watch } from 'vue'
 
 import type { Column } from '@/hooks/pagination'
 
 import moment from 'moment'
-
-import * as $ from 'jquery'
-
-// const dt = createDt(window, $)
 
 export default defineComponent({
   name: 'DataTable',
@@ -80,8 +76,38 @@ export default defineComponent({
 
     const selected = ref<string | number>(-1)
 
+    let dTable: any = null
+
+    function destroyTable () {
+      const api = new window.$.fn.DataTable.Api(table.value)
+
+      api.destroy()
+    }
+
+    function mountTable () {
+      destroyTable()
+
+      dTable = window.$(table.value).DataTable({
+        select: 'single',
+        data: props.entities,
+        columns: props.columns.map(c => ({ data: c.key, title: c.label }))
+      })
+
+      window.$(table.value).on('click', 'tr', function () {
+        // alert('opa')
+      })
+    }
+
     onMounted(() => {
-      // dt(table.value as Element).DataTable()
+      mountTable()
+    })
+
+    onBeforeMount((): void => {
+      destroyTable()
+    })
+
+    watch(() => props.entities, (_): void => {
+      mountTable()
     })
 
     function toggleSelected (key: string | undefined) {
