@@ -29,17 +29,9 @@
   </div>
 </template>
 
-<style lang="scss" scoped>
-  .numeric {
+<style lang="scss">
+  .dt-table-numeric {
     text-align: right
-  }
-
-  .table-hover tr {
-    cursor: pointer;
-  }
-
-  .divider {
-    border-bottom: 1px solid #e3e6f0;
   }
 </style>
 
@@ -81,6 +73,8 @@ export default defineComponent({
     function destroyTable () {
       const api = new window.$.fn.DataTable.Api(table.value)
 
+      api.state.save()
+
       api.destroy()
     }
 
@@ -88,9 +82,13 @@ export default defineComponent({
       destroyTable()
 
       dTable = window.$(table.value).DataTable({
-        select: 'single',
+        stateSave: true,
         data: props.entities,
-        columns: props.columns.map(c => ({ data: c.key, title: c.label }))
+        columns: props.columns.map(c => ({
+          data: c.key,
+          title: c.label,
+          ...(['numeric', 'money'].indexOf(c.type ?? '') !== -1 ? { className: 'dt-table-numeric' } : {})
+        }))
       })
 
       window.$(table.value).on('click', 'tr', function () {

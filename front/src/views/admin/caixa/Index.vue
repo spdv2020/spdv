@@ -1,4 +1,7 @@
 <template>
+  <div v-if="!caixaAberto" class="backdrop d-flex align-items-center justify-content-center">
+    <button type="button" class="btn btn-warning btn-lg" @click="abrirCaixa()">ABRIR CAIXA</button>
+  </div>
   <div class="wrapper container-fluid bg-white d-flex flex-column m-0 p-0">
     <div class="row m-0">
       <div class="col-sm-12 topbar p-0">
@@ -28,17 +31,23 @@
             <h6 class="m-0 font-weight-bold text-primary">Cupom</h6>
           </div>
           <div class="card-body">
-            <div class="table-responsive">
+            <div class="table-responsive tableFixHead">
               <table class="table table-bordered" cellspacing="0">
                 <thead>
                   <tr>
-                    <th>Nome</th>
-                    <th>Qtd</th>
-                    <th>Valor unit.</th>
-                    <th>Total</th>
+                    <th style="width: 65%">Nome</th>
+                    <th style="width: 10%">Qtd</th>
+                    <th style="width: 10%">Valor unit.</th>
+                    <th style="width: 15%">Total</th>
                   </tr>
                 </thead>
                 <tbody class="fixed-tbody">
+                  <tr v-for="produto in produtos" :key="produto.venda_produto_id">
+                    <td>{{ produto.nome }}</td>
+                    <td>{{ produto.quantidade }}</td>
+                    <td>{{ produto.valor_unit }}</td>
+                    <td>{{ produto.total }}</td>
+                  </tr>
                 </tbody>
               </table>
             </div>
@@ -82,7 +91,7 @@
               class="form-control"
               autocomplete="off"
               name="nome"
-              v-model="qnt"
+              v-model="qtd"
             />
           </div>
           <div class="form-group input-group-lg">
@@ -99,13 +108,35 @@
 
           <button style="display: none;" type="submit">Add</button>
         </form>
+
+        <div class="divider"></div>
+
+        <div class="form-group input-group-lg">
+          <label for="nome">Total venda</label>
+          <input
+            type="text"
+            readonly
+            id="nome"
+            class="form-control"
+            autocomplete="off"
+            name="nome"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
   $topbar: 70px;
+
+  .backdrop {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgb(63 81 181 / 90%);
+    z-index: 2;
+  }
 
   .sidebar-brand {
     background: $primary;
@@ -171,25 +202,109 @@
     }
   }
 
-  .fixed-tbody {
-    display: block;
-    height: 50vh
-  }
+  .tableFixHead    { overflow: auto; height: 50vh; }
+  .tableFixHead th { position: sticky; top: 0; }
+
+  /* Just common table stuff. */
+  table  { border-collapse: collapse; width: 100%; }
+  th, td { padding: 8px 16px; }
+  th     { background:#eee; }
 </style>
 
 <script lang="ts">
-import { defineComponent, onMounted, onBeforeUnmount, ref } from 'vue'
+import { defineComponent, onMounted, onBeforeUnmount, ref, nextTick } from 'vue'
 
 import onScan from 'onscan.js'
 import hotkeys from 'hotkeys-js'
 
+import { execute } from '@/api'
+
 export default defineComponent({
   name: 'FrenteCaixa',
   setup () {
-    const qnt = ref('1')
+    const caixaAberto = ref(false)
+    const produtos = ref<any[]>([])
+    const total = ref('0.00')
+
+    const qtd = ref('1')
     const codigoBarras = ref('')
 
+    function resetForm () {
+      qtd.value = '1'
+      codigoBarras.value = ''
+    }
+
+    async function refreshCaixa (params: { clear: boolean }) {
+      try {
+        const result = await execute('GET', '/caixa')
+
+        const { caixa_id, venda } = result
+        if (caixa_id === -1) {
+          caixaAberto.value = false
+          produtos.value = []
+
+          return
+        }
+
+        caixaAberto.value = true
+
+        if (venda) {
+          const { total: totalVenda, produtos: lista } = venda
+
+          total.value = totalVenda
+          produtos.value = lista
+        }
+
+        if (params.clear) {
+          resetForm()
+        }
+      } catch (e) {
+
+      }
+    }
+
+    async function adicionarProduto () {
+      try {
+        const result = await execute('POST', '/caixa/produto', {
+          codigo_barras: codigoBarras.value,
+          qtd: qtd.value
+        })
+
+        const { venda_produto_id } = result
+        if (!venda_produto_id) {
+          alert('produto não encontrado')
+          resetForm()
+          return
+        }
+
+        refreshCaixa({ clear: true })
+      } catch (e) {
+        alert('produto não encontrado')
+        resetForm()
+      }
+    }
+
+    async function abrirCaixa () {
+      try {
+        const result = await execute('POST', '/caixa')
+
+        const { caixa_id } = result
+        if (!caixa_id) {
+          alert('Não foi possivel abrir o caixa')
+          return
+        }
+
+        refreshCaixa({ clear: true })
+      } catch (e) {
+        alert('Não foi possivel abrir o caixa')
+      }
+    }
+
     onMounted(() => {
+      refreshCaixa({
+        clear: true
+      })
+
       hotkeys('f1', (e) => {
         e.preventDefault()
         alert('opa')
@@ -206,8 +321,11 @@ export default defineComponent({
       onScan.attachTo(document, {
         suffixesCodes: [13],
         reactToPaste: true,
-        onScan: (code: string, qty: number) => {
-          console.log(code, qty)
+        onScan: async (code: string, qty: number) => {
+          codigoBarras.value = code
+          await nextTick()
+
+          adicionarProduto()
         }
       })
     })
@@ -218,14 +336,17 @@ export default defineComponent({
     })
 
     function buscarAdicionar () {
-      alert(codigoBarras.value)
+      adicionarProduto()
     }
 
     return {
-      qnt,
+      caixaAberto,
+      qtd,
       codigoBarras,
+      produtos,
 
-      buscarAdicionar
+      buscarAdicionar,
+      abrirCaixa
     }
   }
 })
