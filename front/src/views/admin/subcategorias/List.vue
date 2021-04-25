@@ -180,7 +180,7 @@ export default defineComponent({
         selected.value = item
         nome.value = item.nome as string
         categoria_id.value = item.categoria_id as string ?? ''
-        $('[name=categoria_id]').val(categoria_id.value).trigger('change')
+        $('[name=categoria_id]').val(categoria_id.value as string).trigger('change')
       }
 
       if (modal) {

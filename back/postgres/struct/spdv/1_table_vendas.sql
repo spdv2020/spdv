@@ -10,7 +10,7 @@ CREATE TABLE spdv.vendas
   status spdv.venda_status NOT NULL,
 
   caixa_id bigint NOT NULL,
-  cliente_id bigint,
+  cliente_cpf character varying(11),
 
   usuario_id bigint NOT NULL,
 

@@ -15,7 +15,7 @@
             </a>
           </div>
           <div class="col-sm-6 d-flex align-items-center text-primary text-bold">
-            <h5>Caixa aberto</h5>
+            <h5 style="margin: 0">{{ caixaAberto ? `Caixa #${caixaId}` : 'Caixa fechado' }}</h5>
           </div>
           <div class="col-sm-4">
             <!-- <h5>Usuário</h5> -->
@@ -25,7 +25,7 @@
       <div class="col-sm-9 content content-table pl-5 pr-5 py-5">
         <div class="card shadow mb-4">
           <div class="card-header py-3">
-            <h6 class="m-0 font-weight-bold text-primary">Cupom</h6>
+            <h6 class="m-0 font-weight-bold text-primary">Produtos</h6>
           </div>
           <div class="card-body">
             <div class="table-responsive tableFixHead">
@@ -51,10 +51,14 @@
           </div>
         </div>
         <div class="help">
-          <h6>F1 - Mais atalhos</h6>
-          <h6>F2 - Cancelar venda</h6>
-          <h6>F3 - Fechar caixa</h6>
-          <h6>F4 - Informar quantidade</h6>
+          <h6>ESC - Cancelar venda</h6>
+          <h6>F1 - Fechar venda</h6>
+          <h6>F2 - Informar quantidade</h6>
+        </div>
+        <div class="help">
+          <h6>F7 - Realizar aporte</h6>
+          <h6>F8 - Realizar sangria</h6>
+          <h6>F10 - Fechar caixa</h6>
         </div>
       </div>
       <div class="col-sm-3 bg-white content content-form">
@@ -102,7 +106,7 @@
               id="nome"
               class="form-control"
               autocomplete="off"
-              name="nome"
+              v-model="produtoTotal"
             />
           </div>
 
@@ -165,6 +169,10 @@
       </form>
     </div>
 
+    <div ref="modalCaixaMovimentoRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <Movimento :tipo="movimentoTipo" :total="valorEmCaixa" @submit="caixaMovimento" @close="closeCaixaMovimento" />
+    </div>
+
     <div ref="modalCancelarVendaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -180,6 +188,28 @@
           <div class="modal-footer">
             <button class="btn btn-link" type="button" @click="closeCancelarVenda()">Não</button>
             <button type="button" class="btn btn-primary" @click="cancelarVenda()">Sim</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div ref="modalFecharCaixaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Fechar caixa</h5>
+            <button class="close" type="button" @click="closeFecharCaixa()" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <h6>Tem certeza que deseja fechar o caixa?</h6>
+            <br />
+            <h6>Valor em caixa: <strong>R$ {{ valorEmCaixa }}</strong></h6>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-link" type="button" @click="closeFecharCaixa()">Não</button>
+            <button type="button" class="btn btn-primary" @click="fecharCaixa()">Sim</button>
           </div>
         </div>
       </div>
@@ -264,6 +294,9 @@
       h6 {
         color: #4e72deee;
         display: inline-block;
+        font-weight: bold;
+
+        font-size: 18px;
       }
     }
   }
@@ -292,16 +325,26 @@ import { useForm, useField } from 'vee-validate'
 
 import InputMask from 'inputmask'
 
+import Movimento from './Movimento.vue'
+
 export default defineComponent({
   name: 'FrenteCaixa',
+  components: {
+    Movimento
+  },
   setup () {
+    const caixaId = ref('')
     const caixaAberto = ref(false)
+    const valorEmCaixa = ref('0.00')
+    const movimentoTipo = ref('')
+
     const produtos = ref<any[]>([])
     const sub_total = ref('0.00')
 
     const qtd = ref('1')
     const codigoBarras = ref('')
     const produtoNome = ref('')
+    const produtoTotal = ref('')
 
     const quantidadeInput = ref<Element>()
     const aporteAbrirCaixaRef = ref<Element>()
@@ -309,14 +352,20 @@ export default defineComponent({
     let modalAbrirCaixa: Modal | null = null
     const modalAbrirCaixaRef = ref<Element>()
 
+    let modalCaixaMovimento: Modal | null = null
+    const modalCaixaMovimentoRef = ref<Element>()
+
     let modalCancelarVenda: Modal | null = null
     const modalCancelarVendaRef = ref<Element>()
 
-    const schema = yup.object({
+    let modalFecharCaixa: Modal | null = null
+    const modalFecharCaixaRef = ref<Element>()
+
+    const schemaAbrirCaixa = yup.object({
       aporteAbrirCaixa: yup.number().min(0)
     })
 
-    const { errors: errorsAbrirCaixa, handleSubmit: handleSubmitAbrirCaixa, setFieldError } = useForm({ validationSchema: schema })
+    const { errors: errorsAbrirCaixa, handleSubmit: handleSubmitAbrirCaixa } = useForm({ validationSchema: schemaAbrirCaixa })
 
     const { value: aporteAbrirCaixa } = useField('aporteAbrirCaixa')
 
@@ -326,6 +375,7 @@ export default defineComponent({
       qtd.value = '1'
       codigoBarras.value = ''
       produtoNome.value = ''
+      produtoTotal.value = ''
     }
 
     function openAbrirCaixa () {
@@ -344,6 +394,26 @@ export default defineComponent({
       }
     }
 
+    async function openCaixaMovimento (tipo: string) {
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      closeFecharCaixa()
+
+      movimentoTipo.value = tipo
+      await nextTick()
+
+      if (modalCaixaMovimento) {
+        modalCaixaMovimento.show()
+      }
+    }
+
+    function closeCaixaMovimento () {
+      if (modalCaixaMovimento) {
+        modalCaixaMovimento.hide()
+      }
+
+      movimentoTipo.value = ''
+    }
+
     function novaVenda () {
       sub_total.value = '0.00'
       produtos.value = []
@@ -355,8 +425,10 @@ export default defineComponent({
       try {
         const result = await execute('GET', '/caixa')
 
-        const { caixa_id, venda } = result
+        const { caixa_id, venda, caixa_total } = result
         if (caixa_id === -1) {
+          caixaId.value = ''
+          valorEmCaixa.value = '0.00'
           caixaAberto.value = false
           produtos.value = []
 
@@ -365,7 +437,9 @@ export default defineComponent({
           return
         }
 
+        caixaId.value = caixa_id
         caixaAberto.value = true
+        valorEmCaixa.value = caixa_total.toFixed(2).replace(/\./, ',')
 
         if (venda) {
           const { total: totalVenda, produtos: lista } = venda
@@ -401,6 +475,7 @@ export default defineComponent({
         await nextTick()
 
         produtoNome.value = produto.nome
+        produtoTotal.value = Number(produto.total).toFixed(2).replace(/\./, ',')
 
         if (quantidadeInput.value) {
           (quantidadeInput.value as HTMLElement).blur()
@@ -413,10 +488,10 @@ export default defineComponent({
       }
     }
 
-    const abrirCaixa = handleSubmitAbrirCaixa(async ({ aporteAbrirCaixa }) => {
+    const abrirCaixa = handleSubmitAbrirCaixa(async ({ aporteAbrirCaixa: aporte }) => {
       try {
         const result = await execute('POST', '/caixa', {
-          aporte: Number(aporteAbrirCaixa) || 0
+          aporte: Number(aporte) || 0
         })
 
         const { caixa_id } = result
@@ -427,15 +502,41 @@ export default defineComponent({
 
         refreshCaixa({ clear: true })
         closeAbrirCaixa({ closeWindow: false })
+
+        aporteAbrirCaixa.value = '0.00'
       } catch (e) {
         alert('Não foi possivel abrir o caixa')
       }
     })
 
+    const caixaMovimento = async (valor: number) => {
+      try {
+        const result = await execute('POST', '/caixa/movimento', {
+          valor: valor,
+          tipo: movimentoTipo.value
+        })
+
+        const { caixa_id } = result
+        if (!caixa_id) {
+          alert('Não foi possivel realizar a movimentação')
+          return
+        }
+
+        refreshCaixa({ clear: true })
+        closeCaixaMovimento()
+      } catch (e) {
+        alert(e.message)
+      }
+    }
+
     function openCancelarVenda () {
       if (produtos.value.length === 0) {
         return
       }
+
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      closeFecharCaixa()
+      closeCaixaMovimento()
 
       if (modalCancelarVenda) {
         modalCancelarVenda.show()
@@ -445,6 +546,21 @@ export default defineComponent({
     function closeCancelarVenda () {
       if (modalCancelarVenda) {
         modalCancelarVenda.hide()
+      }
+    }
+
+    function openFecharCaixa () {
+      closeCancelarVenda()
+      closeCaixaMovimento()
+
+      if (modalFecharCaixa) {
+        modalFecharCaixa.show()
+      }
+    }
+
+    function closeFecharCaixa () {
+      if (modalFecharCaixa) {
+        modalFecharCaixa.hide()
       }
     }
 
@@ -466,6 +582,24 @@ export default defineComponent({
       }
     }
 
+    async function fecharCaixa () {
+      try {
+        const result = await execute('DELETE', '/caixa')
+
+        const { caixa } = result
+        if (!caixa) {
+          alert('Não foi possivel fechar o caixa')
+          return
+        }
+
+        novaVenda()
+        refreshCaixa({ clear: true })
+        closeFecharCaixa()
+      } catch (e) {
+        alert(e.message)
+      }
+    }
+
     onMounted(() => {
       modalAbrirCaixa = new Modal(modalAbrirCaixaRef.value as Element, {
         backdrop: 'static',
@@ -473,6 +607,16 @@ export default defineComponent({
       })
 
       modalCancelarVenda = new Modal(modalCancelarVendaRef.value as Element, {
+        backdrop: 'static',
+        keyboard: false
+      })
+
+      modalFecharCaixa = new Modal(modalFecharCaixaRef.value as Element, {
+        backdrop: 'static',
+        keyboard: false
+      })
+
+      modalCaixaMovimento = new Modal(modalCaixaMovimentoRef.value as Element, {
         backdrop: 'static',
         keyboard: false
       })
@@ -487,21 +631,27 @@ export default defineComponent({
         clear: true
       })
 
-      hotkeys('f1', (e) => {
-        e.preventDefault()
-        alert('opa')
-      })
-
-      hotkeys('f2', (e) => {
+      hotkeys('esc', (e) => {
         e.preventDefault()
         openCancelarVenda()
       })
 
-      hotkeys('f3', (e) => {
+      hotkeys('f7', (e) => {
         e.preventDefault()
+        openCaixaMovimento('aporte')
       })
 
-      hotkeys('f4', (e) => {
+      hotkeys('f8', (e) => {
+        e.preventDefault()
+        openCaixaMovimento('sangria')
+      })
+
+      hotkeys('f10', (e) => {
+        e.preventDefault()
+        openFecharCaixa()
+      })
+
+      hotkeys('f2', (e) => {
         e.preventDefault()
 
         if (quantidadeInput.value) {
@@ -537,6 +687,7 @@ export default defineComponent({
       produtos,
       sub_total,
       produtoNome,
+      produtoTotal,
 
       buscarAdicionar,
       abrirCaixa,
@@ -548,7 +699,16 @@ export default defineComponent({
       modalAbrirCaixaRef,
       aporteAbrirCaixa,
       errorsAbrirCaixa,
-      aporteAbrirCaixaRef
+      aporteAbrirCaixaRef,
+      modalFecharCaixaRef,
+      closeFecharCaixa,
+      fecharCaixa,
+      caixaId,
+      valorEmCaixa,
+      closeCaixaMovimento,
+      modalCaixaMovimentoRef,
+      movimentoTipo,
+      caixaMovimento
     }
   }
 })

@@ -19,6 +19,42 @@ caixa = rv[0]
 return caixa['id']
 $$ LANGUAGE plpython3u;
 
+CREATE OR REPLACE FUNCTION spdv.total_caixa(caixa_id bigint) RETURNS real AS $$
+sql = """
+  SELECT SUM(v.total) AS total FROM (
+    SELECT
+      SUM(v.valor_total) AS total
+    FROM
+      spdv.vendas v 
+    WHERE
+      v.caixa_id = $1 AND
+      v.status = 'ENCERRADO'
+    UNION
+    SELECT
+      SUM(CASE cm.tipo
+        WHEN 'APORTE' THEN cm.valor 
+        WHEN 'SANGRIA' THEN -cm.valor 
+        ELSE 0 
+      END) AS total 
+    FROM
+      spdv.caixa_movimentos cm 
+    WHERE
+      cm.caixa_id = $1 AND 
+      cm.tipo IN ('APORTE', 'SANGRIA')
+  ) v
+"""
+
+plan = plpy.prepare(sql, ['bigint'])
+rv = plpy.execute(plan, [caixa_id])
+
+if len(rv) == 0:
+  return 0
+
+caixa = rv[0]
+
+return caixa['total']
+$$ LANGUAGE plpython3u;
+
 CREATE OR REPLACE FUNCTION spdv.get_caixa_aberto(request_raw json) RETURNS json AS $$
 import simplejson as json
 
@@ -47,6 +83,15 @@ if caixa['id'] == -1:
   return json.dumps(response, separators=(',', ':'))
 
 sql = """
+  SELECT spdv.total_caixa($1) AS total
+"""
+
+plan = plpy.prepare(sql, ['bigint'])
+rv = plpy.execute(plan, [caixa['id']])
+
+caixa['total'] = rv[0]['total']
+
+sql = """
   SELECT
     v.id,
     SUM(ROUND(vp.quantidade * vp.valor_unit::numeric, 2)) AS total
@@ -69,7 +114,8 @@ if len(rv) == 0:
   response = {
     'code': 200,
     'body': {
-      'caixa_id': caixa['id']
+      'caixa_id': caixa['id'],
+      'caixa_total': caixa['total']
     }
   }
 
@@ -108,6 +154,7 @@ response = {
   'code': 200,
   'body': {
     'caixa_id': caixa['id'],
+    'caixa_total': caixa['total'],
     'venda': {
       'total': venda['total'],
       'produtos': produtos

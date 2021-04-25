@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION spdv.adicionar_produto_caixa(request_raw json) RETURNS json AS $$
-import json
+import simplejson as json
 
 request = json.loads(request_raw)
 
@@ -77,7 +77,7 @@ sql = """
     INTO spdv.venda_produtos
       (valor_unit, quantidade, venda_id, produto_id)
     VALUES ($1, $2, $3, $4)
-    RETURNING id
+    RETURNING id, ROUND(valor_unit::numeric * quantidade, 2) AS total
 """
 
 plan = plpy.prepare(sql, ['real', 'integer', 'bigint', 'bigint'])
@@ -90,7 +90,8 @@ response = {
   'body': {
     'venda_produto_id': venda_produto['id'],
     'produto': {
-      'nome': produto['nome']
+      'nome': produto['nome'],
+      'total': venda_produto['total']
     }
   }
 }

@@ -3,7 +3,7 @@ CREATE SCHEMA spdv
 
 CREATE TYPE spdv.caixa_movimento_tipo AS ENUM
 (
-  'SANGRIA', 'APORTE', 'VENDA'
+  'SANGRIA', 'APORTE', 'VENDA', 'FECHAMENTO'
 );
 
 CREATE TYPE spdv.venda_metodo_pagamento AS ENUM

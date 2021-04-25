@@ -228,7 +228,7 @@ export default defineComponent({
         valor_unit.value = Number(item.valor_unit as string).toFixed(2)
         codigo_barras.value = item.codigo_barras as string ?? ''
         marca_id.value = item.marca_id as string ?? ''
-        $('[name=marca_id]').val(marca_id.value).trigger('change')
+        $('[name=marca_id]').val(marca_id.value as string).trigger('change')
       }
       if (modal) {
         modal.show()

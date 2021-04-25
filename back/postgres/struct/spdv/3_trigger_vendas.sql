@@ -14,12 +14,12 @@ def cpf_validate(numbers):
       return False
   return True
 
-cpf = TD['new']['cpf']
-if cpf_validate(cpf) == False:
+cpf = TD['new']['cliente_cpf']
+if cpf is not None and cpf_validate(cpf) == False:
   raise Exception('CPF Inválido')
 $$ LANGUAGE plpython3u;
 
 CREATE TRIGGER cliente_cpf
-  BEFORE INSERT OR UPDATE ON spdv.clientes
+  BEFORE INSERT OR UPDATE ON spdv.vendas
   FOR EACH ROW
   EXECUTE PROCEDURE spdv.cliente_valida_cpf();

@@ -19,7 +19,9 @@ export async function execute (method: string, path: string, body: object = {}) 
   const data = await res.json()
 
   if (res.status >= 400) {
-    throw new Error(data.message)
+    const remove = /(spiexceptions.InternalError: plpy.Error: )|(plpy.Error: )/
+
+    throw new Error(data.message.replace(remove, ''))
   }
 
   return data
