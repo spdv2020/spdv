@@ -81,7 +81,7 @@
                     <div class="form-group">
                       <label for="valor_unit">Valor de venda (R$)</label>
                       <input
-                        ref="inputRef"
+                        ref="valorUnitRef"
                         type="text"
                         id="valor_unit"
                         class="form-control"
@@ -97,7 +97,6 @@
                     <div class="form-group">
                       <label for="valor_unit">Código de Barras</label>
                       <input
-                        ref="inputRef"
                         type="text"
                         id="codigo_barras"
                         class="form-control"
@@ -165,6 +164,8 @@ import 'select2'
 
 import Barcoder from 'barcoder'
 
+import InputMask from 'inputmask'
+
 interface Produto {
   id: number;
   nome: string;
@@ -188,9 +189,11 @@ export default defineComponent({
     let modalExcluir: Modal | null = null
     const modalExcluirRef = ref<Element>()
 
+    const valorUnitRef = ref<Element>()
+
     const schema = yup.object({
       nome: yup.string().required(),
-      valor_unit: yup.number().required(),
+      valor_unit: yup.number().min(0).required(),
       codigo_barras: yup.string().max(13).required().test('ean', 'O código de barras deve ser valido', function (value) {
         return Barcoder.validate(value)
       }),
@@ -204,6 +207,8 @@ export default defineComponent({
     const { value: valor_unit } = useField('valor_unit')
     const { value: codigo_barras } = useField('codigo_barras')
     const { value: marca_id } = useField('marca_id')
+
+    valor_unit.value = '0.00'
 
     function open (item: Record<string, string | undefined> | undefined) {
       $('[name=marca_id]').select2({
@@ -327,6 +332,12 @@ export default defineComponent({
         keyboard: false
       })
 
+      const im = new InputMask('decimal', {
+        rightAlign: false,
+        numericInput: true
+      })
+      im.mask(valorUnitRef.value as HTMLElement)
+
       fetchMarcas()
       fetchEntities()
     })
@@ -349,7 +360,8 @@ export default defineComponent({
       codigo_barras,
       onSubmit,
       marcas,
-      marca_id
+      marca_id,
+      valorUnitRef
     }
   }
 })

@@ -18,7 +18,7 @@ validate(instance=body, schema={
 
 request = json.loads(request_raw)
 
-nome = body.get('aporte')
+aporte = body.get('aporte')
 
 sql = """
   SELECT spdv.get_caixa_aberto_id() AS id
@@ -46,7 +46,26 @@ sql = """
 plan = plpy.prepare(sql, ["bigint"])
 rv = plpy.execute(plan, [userId])
 
+if len(rv) == 0:
+  plpy.error('Não foi possível abrir o caixa')
+
 caixa = rv[0]
+
+if aporte > 0:
+  sql = """
+    INSERT
+      INTO spdv.caixa_movimentos
+        (caixa_id, usuario_id_movimento, valor, tipo)
+      VALUES
+        ($1, $2, $3, $4)
+      RETURNING id
+  """
+
+plan = plpy.prepare(sql, ['bigint', 'bigint', 'real', 'spdv.caixa_movimento_tipo'])
+rv = plpy.execute(plan, [caixa['id'], userId, aporte, 'APORTE'])
+
+if len(rv) == 0:
+  plpy.error('Não foi possível abrir o caixa')
 
 response = {
   'code': 201,

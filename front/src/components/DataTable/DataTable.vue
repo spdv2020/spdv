@@ -42,6 +42,8 @@ import type { Column } from '@/hooks/pagination'
 
 import moment from 'moment'
 
+import lang from './lang.json'
+
 export default defineComponent({
   name: 'DataTable',
   props: {
@@ -88,7 +90,8 @@ export default defineComponent({
           data: c.key,
           title: c.label,
           ...(['numeric', 'money'].indexOf(c.type ?? '') !== -1 ? { className: 'dt-table-numeric' } : {})
-        }))
+        })),
+        language: lang
       })
 
       window.$(table.value).on('click', 'tr', function () {

@@ -3,7 +3,20 @@ import json
 
 request = json.loads(request_raw)
 
-plan = plpy.prepare('SELECT pm.* FROM spdv.produto_subcategorias pm WHERE pm.ativo = true')
+sql = """
+  SELECT
+    pm.*,
+    pc.nome as categoria
+    FROM
+      spdv.produto_subcategorias pm
+    INNER JOIN
+      spdv.produto_categorias pc
+        ON pc.id = pm.categoria_id
+    WHERE
+      pm.ativo = true
+"""
+
+plan = plpy.prepare(sql)
 rv = plpy.execute(plan)
 
 data = []

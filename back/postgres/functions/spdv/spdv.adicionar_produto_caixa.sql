@@ -28,7 +28,8 @@ if possui_caixa_aberto is False:
 sql = """
   SELECT
     p.id,
-    p.valor_unit
+    p.valor_unit,
+    p.nome
     FROM
       spdv.produtos p
     WHERE
@@ -87,7 +88,10 @@ venda_produto = rv[0]
 response = {
   'code': 200,
   'body': {
-    'venda_produto_id': venda_produto['id']
+    'venda_produto_id': venda_produto['id'],
+    'produto': {
+      'nome': produto['nome']
+    }
   }
 }
 

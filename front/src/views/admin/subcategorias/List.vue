@@ -222,6 +222,9 @@ export default defineComponent({
       key: 'nome',
       label: 'Nome'
     }, {
+      key: 'categoria',
+      label: 'Categoria'
+    }, {
       key: 'data_atualizacao',
       label: 'Atualizado em',
       type: 'datetime'

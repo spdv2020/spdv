@@ -33,6 +33,10 @@ setLocale({
     min: 'O campo deve ter no minímo ${min} caracteres',
     // eslint-disable-next-line no-template-curly-in-string
     max: 'O campo deve ter no máximo ${max} caracteres'
+  },
+  number: {
+    // eslint-disable-next-line no-template-curly-in-string
+    min: 'O campo deve conter um valor maior ou igual a ${min}'
   }
 })
 

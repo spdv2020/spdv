@@ -17,6 +17,7 @@
     "datatables.net-bs4": "^1.10.24",
     "datatables.net-dt": "^1.10.24",
     "hotkeys-js": "^3.8.3",
+    "inputmask": "^5.0.5",
     "jquery": "^3.5.1",
     "maska": "^1.4.0",
     "moment": "^2.29.1",
@@ -32,6 +33,7 @@
   "devDependencies": {
     "@types/bootstrap": "^5.0.5",
     "@types/chai": "^4.2.11",
+    "@types/inputmask": "^5.0.0",
     "@types/mocha": "^5.2.4",
     "@types/select2": "^4.0.53",
     "@types/yup": "^0.29.11",

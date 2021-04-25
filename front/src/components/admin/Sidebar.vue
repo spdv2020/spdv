@@ -32,6 +32,7 @@
             :data-target="`#sidebar-collapse-${i}-${j}`"
             :aria-controls="`sidebar-collapse-${i}-${j}`"
             :href="menu.link || '#'"
+            :target="menu.target"
             :data-toggle="menu.subgroups !== undefined && menu.subgroups.length !== 0 ? 'collapse' : undefined"
           >
             <i :class="menu.icon"></i>
@@ -79,6 +80,7 @@ interface Menu {
 
   link?: string;
   subgroups?: MenuSubgroup[];
+  target?: string;
 }
 
 interface MenuSubgroup {
@@ -123,8 +125,9 @@ export default defineComponent({
         menus: [
           {
             name: 'Frente de caixa',
-            icon: 'fas fa-fw fa-dollar-sign',
-            link: '/admin/caixa'
+            icon: 'fas fa-fw fa-shopping-cart',
+            link: '/admin/caixa',
+            target: '_blank'
           }
         ]
       },
@@ -133,36 +136,36 @@ export default defineComponent({
         menus: [
           {
             name: 'Produtos',
-            icon: 'fas fa-fw fa-cog',
+            icon: 'fas fa-fw fa-candy-cane',
             link: '/admin/produtos'
           },
           {
             name: 'Categorias',
-            icon: 'fas fa-fw fa-cog',
+            icon: 'fas fa-fw fa-object-group',
             link: '/admin/categorias'
           },
           {
             name: 'Subcategorias',
-            icon: 'fas fa-fw fa-cog',
+            icon: 'fas fa-fw fa-layer-group',
             link: '/admin/subcategorias'
           },
           {
             name: 'Marcas',
-            icon: 'fas fa-fw fa-cog',
+            icon: 'fas fa-fw fa-folder-open',
             link: '/admin/marcas'
           }
         ]
       },
-      // {
-      //   name: 'Relatórios',
-      //   menus: [
-      //     {
-      //       name: 'Vendas',
-      //       icon: 'fas fa-fw fa-cog',
-      //       link: undefined
-      //     }
-      //   ]
-      // },
+      {
+        name: 'Relatórios',
+        menus: [
+          {
+            name: 'Vendas',
+            icon: 'fas fa-fw fa-dollar-sign',
+            link: '/admin/relatorios/vendas'
+          }
+        ]
+      },
       {
         name: 'Configurações',
         menus: [
