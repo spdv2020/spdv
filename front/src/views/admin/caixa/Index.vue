@@ -173,6 +173,10 @@
       <Movimento :tipo="movimentoTipo" :total="valorEmCaixa" @submit="caixaMovimento" @close="closeCaixaMovimento" />
     </div>
 
+    <div ref="modalFecharVendaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+      <Venda :total="sub_total" @submit="fecharVenda" @close="closeFecharVenda" />
+    </div>
+
     <div ref="modalCancelarVendaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
       <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -325,11 +329,13 @@ import { useForm, useField } from 'vee-validate'
 
 import InputMask from 'inputmask'
 
+import Venda from './Venda.vue'
 import Movimento from './Movimento.vue'
 
 export default defineComponent({
   name: 'FrenteCaixa',
   components: {
+    Venda,
     Movimento
   },
   setup () {
@@ -354,6 +360,9 @@ export default defineComponent({
 
     let modalCaixaMovimento: Modal | null = null
     const modalCaixaMovimentoRef = ref<Element>()
+
+    let modalFecharVenda: Modal | null = null
+    const modalFecharVendaRef = ref<Element>()
 
     let modalCancelarVenda: Modal | null = null
     const modalCancelarVendaRef = ref<Element>()
@@ -397,6 +406,8 @@ export default defineComponent({
     async function openCaixaMovimento (tipo: string) {
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       closeFecharCaixa()
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      closeFecharVenda()
 
       movimentoTipo.value = tipo
       await nextTick()
@@ -412,6 +423,28 @@ export default defineComponent({
       }
 
       movimentoTipo.value = ''
+    }
+
+    async function openFecharVenda () {
+      if (produtos.value.length === 0) {
+        return
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-use-before-define
+      closeFecharCaixa()
+      closeCaixaMovimento()
+
+      await nextTick()
+
+      if (modalFecharVenda) {
+        modalFecharVenda.show()
+      }
+    }
+
+    function closeFecharVenda () {
+      if (modalFecharVenda) {
+        modalFecharVenda.hide()
+      }
     }
 
     function novaVenda () {
@@ -537,6 +570,7 @@ export default defineComponent({
       // eslint-disable-next-line @typescript-eslint/no-use-before-define
       closeFecharCaixa()
       closeCaixaMovimento()
+      closeFecharVenda()
 
       if (modalCancelarVenda) {
         modalCancelarVenda.show()
@@ -552,6 +586,7 @@ export default defineComponent({
     function openFecharCaixa () {
       closeCancelarVenda()
       closeCaixaMovimento()
+      closeFecharVenda()
 
       if (modalFecharCaixa) {
         modalFecharCaixa.show()
@@ -600,6 +635,24 @@ export default defineComponent({
       }
     }
 
+    async function fecharVenda () {
+      try {
+        const result = await execute('POST', '/caixa/venda')
+
+        const { caixa } = result
+        if (!caixa) {
+          alert('Não foi possivel fechar o caixa')
+          return
+        }
+
+        novaVenda()
+        refreshCaixa({ clear: true })
+        closeFecharCaixa()
+      } catch (e) {
+        alert(e.message)
+      }
+    }
+
     onMounted(() => {
       modalAbrirCaixa = new Modal(modalAbrirCaixaRef.value as Element, {
         backdrop: 'static',
@@ -617,6 +670,11 @@ export default defineComponent({
       })
 
       modalCaixaMovimento = new Modal(modalCaixaMovimentoRef.value as Element, {
+        backdrop: 'static',
+        keyboard: false
+      })
+
+      modalFecharVenda = new Modal(modalFecharVendaRef.value as Element, {
         backdrop: 'static',
         keyboard: false
       })
@@ -649,6 +707,12 @@ export default defineComponent({
       hotkeys('f10', (e) => {
         e.preventDefault()
         openFecharCaixa()
+      })
+
+      hotkeys('f1', (e) => {
+        e.preventDefault()
+
+        openFecharVenda()
       })
 
       hotkeys('f2', (e) => {
@@ -708,7 +772,10 @@ export default defineComponent({
       closeCaixaMovimento,
       modalCaixaMovimentoRef,
       movimentoTipo,
-      caixaMovimento
+      caixaMovimento,
+      modalFecharVendaRef,
+      fecharVenda,
+      closeFecharVenda
     }
   }
 })

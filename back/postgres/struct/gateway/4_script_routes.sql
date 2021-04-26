@@ -32,4 +32,5 @@ INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('P
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('DELETE', '/caixa', 'Fechar caixa', 'spdv.fechar_caixa');
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('GET', '/caixa', 'Recupera o caixa aberto', 'spdv.get_caixa_aberto');
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('POST', '/caixa/produto', 'Adiciona produto a venda', 'spdv.adicionar_produto_caixa');
+INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('POST', '/caixa/venda', 'Fechar a venda', 'spdv.fechar_venda');
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('DELETE', '/caixa/venda', 'Cancelar a venda', 'spdv.cancelar_venda');
