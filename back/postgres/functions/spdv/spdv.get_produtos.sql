@@ -7,19 +7,13 @@ sql = """
   SELECT
     p.*,
     ROUND(p.valor_unit::numeric, 2) as valor_unit,
-    array_to_json(
-      array_remove(
-        array_agg(t.nome), NULL
-      )
-    ) as tags
+    psc.nome as subcategoria
     FROM
       spdv.produtos p
-    LEFT JOIN spdv.produto_tags t
-      ON t.produto_id = p.id
+    INNER JOIN
+      spdv.produto_subcategorias psc ON psc.id = p.subcategoria_id
     WHERE
       p.ativo = true
-    GROUP BY
-      p.id
 """
 
 plan = plpy.prepare(sql)
@@ -28,7 +22,6 @@ rv = plpy.execute(plan)
 data = []
 for i in rv:
   row = i.copy()
-  row['tags'] = json.loads(row['tags'])
 
   data.append(row)
 

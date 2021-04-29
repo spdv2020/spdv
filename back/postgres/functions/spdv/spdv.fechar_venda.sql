@@ -57,7 +57,7 @@ total = subtotal - valor_desconto
 troco = valor_recebido - total
 
 if troco < 0:
-  plpy.error('O valor recebido é menor que o total da compra')
+  plpy.error('O valor recebido é menor que o total da compra %d' % troco)
 
 sql = """
   UPDATE

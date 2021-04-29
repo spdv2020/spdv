@@ -14,6 +14,7 @@ validate(instance=body, schema={
     'valor_unit': { 'type': 'number' },
     'codigo_barras': { 'type': ['string', 'null'] },
     'marca_id': { 'type': ['number', 'null'] },
+    'subcategoria_id': { 'type': ['number', 'null'] },
     'tags': {
       'type': 'array',
       'items': {
@@ -30,6 +31,7 @@ nome = body.get('nome')
 valor_unit = body.get('valor_unit')
 codigo_barras = body.get('codigo_barras')
 marca_id = body.get('marca_id')
+subcategoria_id = body.get('subcategoria_id')
 tags = body.get('tags')
 
 if marca_id == 0:
@@ -38,15 +40,15 @@ if marca_id == 0:
 sql = """
   INSERT
     INTO
-      spdv.produtos (nome, valor_unit, codigo_barras, marca_id)
-    VALUES ($1, $2, $3, $4)
+      spdv.produtos (nome, valor_unit, codigo_barras, marca_id, subcategoria_id)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING id
 """
 
-plan = plpy.prepare(sql, ['text', 'real', 'text', 'bigint'])
+plan = plpy.prepare(sql, ['text', 'real', 'text', 'bigint', 'bigint'])
 
 try:
-  rv = plpy.execute(plan, [nome, valor_unit, codigo_barras, marca_id])
+  rv = plpy.execute(plan, [nome, valor_unit, codigo_barras, marca_id, subcategoria_id])
 except spiexceptions.ExclusionViolation as e:
   response = {
     'code': 500,

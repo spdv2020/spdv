@@ -35,3 +35,4 @@ INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('P
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('POST', '/caixa/venda', 'Fechar a venda', 'spdv.fechar_venda');
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('DELETE', '/caixa/venda', 'Cancelar a venda', 'spdv.cancelar_venda');
 INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('GET', '/vendas', 'Relatório de vendas', 'spdv.get_vendas');
+INSERT INTO gateway.routes (method, name, description, function_name) VALUES ('GET', '/dashboard', 'Dashboard', 'spdv.get_dashboard');

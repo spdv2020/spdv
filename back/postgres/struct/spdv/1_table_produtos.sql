@@ -5,6 +5,7 @@ CREATE TABLE spdv.produtos
   valor_unit real NOT NULL,
   codigo_barras character varying(13),
   marca_id bigint,
+  subcategoria_id bigint DEFAULT NULL,
   ativo boolean not null default true,
   data_criacao timestamp without time zone NOT NULL DEFAULT NOW(),
   data_atualizacao timestamp without time zone NOT NULL DEFAULT NOW(),

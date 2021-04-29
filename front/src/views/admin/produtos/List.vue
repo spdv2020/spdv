@@ -110,6 +110,24 @@
                       </div>
                     </div>
                     <div class="form-group">
+                      <label for="valor_unit">Categoria / Subcategoria</label>
+                      <select
+                        id="subcategoria_id"
+                        class="form-control"
+                        autocomplete="off"
+                        name="subcategoria_id"
+                        v-model="subcategoria_id"
+                        :class="{ 'is-invalid': !!errors.subcategoria_id }"
+                        style="width: 100%"
+                      >
+                        <option value="">Selecione uma subcategoria</option>
+                        <option v-for="subcategoria in subcategorias" :value="subcategoria.id" :key="subcategoria.id">{{ `${subcategoria.categoria} / ${subcategoria.nome}` }}</option>
+                      </select>
+                      <div class="invalid-feedback">
+                        <small>{{ errors.subcategoria_id || 'default' }}</small>
+                      </div>
+                    </div>
+                    <div class="form-group">
                       <label for="valor_unit">Marca <small>(Opcional)</small></label>
                       <select
                         id="marca_id"
@@ -197,7 +215,8 @@ export default defineComponent({
       codigo_barras: yup.string().max(13).required().test('ean', 'O código de barras deve ser valido', function (value) {
         return Barcoder.validate(value)
       }),
-      marca_id: yup.string()
+      marca_id: yup.string(),
+      subcategoria_id: yup.string().required()
     })
 
     const { errors, handleSubmit, resetForm, setFieldError } = useForm({ validationSchema: schema })
@@ -207,6 +226,7 @@ export default defineComponent({
     const { value: valor_unit } = useField('valor_unit')
     const { value: codigo_barras } = useField('codigo_barras')
     const { value: marca_id } = useField('marca_id')
+    const { value: subcategoria_id } = useField('subcategoria_id')
 
     valor_unit.value = '0.00'
 
@@ -222,13 +242,26 @@ export default defineComponent({
         }
       })
 
+      $('[name=subcategoria_id]').select2({
+        theme: 'bootstrap4'
+      }).on('select2:select', function (e) {
+        const v = Number(e.params.data.id)
+        if (v === 0) {
+          subcategoria_id.value = ''
+        } else {
+          subcategoria_id.value = v
+        }
+      })
+
       if (typeof item !== 'undefined') {
         selected.value = item
         nome.value = item.nome as string
         valor_unit.value = Number(item.valor_unit as string).toFixed(2)
         codigo_barras.value = item.codigo_barras as string ?? ''
         marca_id.value = item.marca_id as string ?? ''
+        subcategoria_id.value = item.subcategoria_id as string ?? ''
         $('[name=marca_id]').val(marca_id.value as string).trigger('change')
+        $('[name=subcategoria_id]').val(subcategoria_id.value as string).trigger('change')
       }
       if (modal) {
         modal.show()
@@ -255,11 +288,13 @@ export default defineComponent({
       }
 
       $('[name=marca_id]').select2('destroy')
+      $('[name=subcategoria_id]').select2('destroy')
 
       selected.value = null
     }
 
     const { entities: marcas, fetchEntities: fetchMarcas } = useFetchEntities('/produtos/marcas')
+    const { entities: subcategorias, fetchEntities: fetchSubcategorias } = useFetchEntities('/produtos/subcategorias')
 
     const { entities, fetchEntities, columns } = usePagination('/produtos', [{
       key: 'id',
@@ -269,7 +304,11 @@ export default defineComponent({
     }, {
       key: 'nome',
       label: 'Nome',
-      width: '35%'
+      width: '25%'
+    }, {
+      key: 'subcategoria',
+      label: 'Subcategoria',
+      width: '10%'
     }, {
       key: 'codigo_barras',
       label: 'Código de barras',
@@ -291,13 +330,14 @@ export default defineComponent({
       width: '15%'
     }])
 
-    const onSubmit = handleSubmit(async ({ nome, valor_unit, codigo_barras, marca_id }) => {
+    const onSubmit = handleSubmit(async ({ nome, valor_unit, codigo_barras, marca_id, subcategoria_id }) => {
       try {
         if (!selected.value?.id) {
           await execute('POST', '/produtos', {
             nome,
             valor_unit: Number(valor_unit),
             codigo_barras,
+            subcategoria_id: Number(subcategoria_id) || null,
             marca_id: Number(marca_id) || null
           })
         } else {
@@ -306,6 +346,7 @@ export default defineComponent({
             nome,
             valor_unit: Number(valor_unit),
             codigo_barras,
+            subcategoria_id: Number(subcategoria_id) || null,
             marca_id: Number(marca_id) || null
           })
         }
@@ -349,6 +390,7 @@ export default defineComponent({
 
       fetchMarcas()
       fetchEntities()
+      fetchSubcategorias()
     })
 
     return {
@@ -370,7 +412,8 @@ export default defineComponent({
       onSubmit,
       marcas,
       marca_id,
-      valorUnitRef
+      valorUnitRef,
+      subcategorias
     }
   }
 })

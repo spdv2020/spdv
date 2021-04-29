@@ -15,6 +15,7 @@ validate(instance=body, schema={
     'valor_unit': { 'type': 'number' },
     'codigo_barras': { 'type': 'string' },
     'marca_id': { 'type': 'number' },
+    'subcategoria_id': { 'type': 'number' },
     'tags': {
       'type': 'array',
       'items': {
@@ -32,18 +33,19 @@ nome = body.get('nome')
 valor_unit = body.get('valor_unit')
 codigo_barras = body.get('codigo_barras')
 marca_id = body.get('marca_id')
+subcategoria_id = body.get('subcategoria_id')
 tags = body.get('tags')
 
 sql = """
   UPDATE spdv.produtos p
-    SET nome = $2, valor_unit = $3, codigo_barras = $4, marca_id = $5
+    SET nome = $2, valor_unit = $3, codigo_barras = $4, marca_id = $5, subcategoria_id = $6
     WHERE p.id = $1
 """
 
-plan = plpy.prepare(sql, ['bigint', 'text', 'real', 'text', 'bigint'])
+plan = plpy.prepare(sql, ['bigint', 'text', 'real', 'text', 'bigint', 'bigint'])
 
 try:
-  rv = plpy.execute(plan, [id, nome, valor_unit, codigo_barras, marca_id])
+  rv = plpy.execute(plan, [id, nome, valor_unit, codigo_barras, marca_id, subcategoria_id])
 except spiexceptions.ExclusionViolation as e:
   response = {
     'code': 500,
