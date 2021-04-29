@@ -7,7 +7,7 @@
       <slot name="actions" :selected="getSelected()"></slot>
     </div>
     <div class="card-body">
-      <div class="table-responsive">
+      <div class="table">
         <table ref="table" class="table table-bordered table-hover" cellspacing="0">
           <!-- <thead>
             <tr>
@@ -72,7 +72,30 @@ export default defineComponent({
 
     let dTable: any = null
 
+    function toggleSelected (key: string | undefined) {
+      if (typeof key === 'undefined') {
+        return
+      }
+
+      if (selected.value === key) {
+        selected.value = -1
+      } else {
+        selected.value = key
+      }
+    }
+
+    function onClick (this: any) {
+      const api = new window.$.fn.DataTable.Api(table.value)
+      const data = api.row(this).data()
+
+      window.$('tr', table.value).not(this).removeClass('table-active')
+      window.$(this).toggleClass('table-active')
+
+      toggleSelected(data[props.entitiyKey])
+    }
+
     function destroyTable () {
+      window.$('tbody', table.value).off('click', 'tr', onClick)
       const api = new window.$.fn.DataTable.Api(table.value)
 
       api.state.save()
@@ -85,18 +108,43 @@ export default defineComponent({
 
       dTable = window.$(table.value).DataTable({
         stateSave: true,
-        data: props.entities,
+        data: props.entities.map((entity) => {
+          return props.columns.reduce((acc, column) => {
+            let value = entity[column.key]
+
+            if (typeof value === 'undefined') {
+              value = undefined
+            }
+
+            switch (column.type) {
+              case 'date':
+                value = moment(value).format('DD/MM/YYYY')
+                break
+              case 'datetime':
+                value = moment(value).format('DD/MM/YYYY HH:mm')
+                break
+              case 'money':
+                value = Number(value).toFixed(2).replace(/\./, ',')
+                break
+            }
+
+            return {
+              ...acc,
+              [entitiyKey.value]: entity[entitiyKey.value],
+              [column.key]: value
+            }
+          }, {})
+        }),
         columns: props.columns.map(c => ({
           data: c.key,
           title: c.label,
-          ...(['numeric', 'money'].indexOf(c.type ?? '') !== -1 ? { className: 'dt-table-numeric' } : {})
+          ...(['numeric', 'money'].indexOf(c.type ?? '') !== -1 ? { className: 'dt-table-numeric' } : {}),
+          width: c.width
         })),
         language: lang
       })
 
-      window.$(table.value).on('click', 'tr', function () {
-        // alert('opa')
-      })
+      window.$('tbody', table.value).on('click', 'tr', onClick)
     }
 
     onMounted(() => {
@@ -110,18 +158,6 @@ export default defineComponent({
     watch(() => props.entities, (_): void => {
       mountTable()
     })
-
-    function toggleSelected (key: string | undefined) {
-      if (typeof key === 'undefined') {
-        return
-      }
-
-      if (selected.value === key) {
-        selected.value = -1
-      } else {
-        selected.value = key
-      }
-    }
 
     function isSelected (key: string | undefined): boolean {
       if (typeof key === 'undefined') {

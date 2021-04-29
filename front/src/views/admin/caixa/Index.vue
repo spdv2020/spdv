@@ -174,7 +174,7 @@
     </div>
 
     <div ref="modalFecharVendaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-      <Venda :total="sub_total" @submit="fecharVenda" @close="closeFecharVenda" />
+      <Venda :venda_id="vendaId" :total="sub_total" @submit="fecharVenda" @close="closeFecharVenda" />
     </div>
 
     <div ref="modalCancelarVendaRef" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -340,6 +340,7 @@ export default defineComponent({
   },
   setup () {
     const caixaId = ref('')
+    const vendaId = ref('')
     const caixaAberto = ref(false)
     const valorEmCaixa = ref('0.00')
     const movimentoTipo = ref('')
@@ -464,6 +465,7 @@ export default defineComponent({
           valorEmCaixa.value = '0.00'
           caixaAberto.value = false
           produtos.value = []
+          vendaId.value = ''
 
           openAbrirCaixa()
 
@@ -475,8 +477,9 @@ export default defineComponent({
         valorEmCaixa.value = caixa_total.toFixed(2).replace(/\./, ',')
 
         if (venda) {
-          const { total: totalVenda, produtos: lista } = venda
+          const { total: totalVenda, produtos: lista, venda_id } = venda
 
+          vendaId.value = venda_id
           sub_total.value = Number(totalVenda).toFixed(2).replace(/\./, ',')
           produtos.value = lista
         } else {
@@ -635,19 +638,25 @@ export default defineComponent({
       }
     }
 
-    async function fecharVenda () {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    async function fecharVenda ({ valorDesconto, valorRecebido, metodoPagamento, cpfCliente }: any) {
       try {
-        const result = await execute('POST', '/caixa/venda')
+        const result = await execute('POST', '/caixa/venda', {
+          valorDesconto,
+          valorRecebido,
+          metodoPagamento,
+          cpfCliente
+        })
 
-        const { caixa } = result
-        if (!caixa) {
-          alert('Não foi possivel fechar o caixa')
+        const { venda_id } = result
+        if (!venda_id) {
+          alert('Não foi possivel fechar a venda')
           return
         }
 
         novaVenda()
         refreshCaixa({ clear: true })
-        closeFecharCaixa()
+        closeFecharVenda()
       } catch (e) {
         alert(e.message)
       }
@@ -775,7 +784,8 @@ export default defineComponent({
       caixaMovimento,
       modalFecharVendaRef,
       fecharVenda,
-      closeFecharVenda
+      closeFecharVenda,
+      vendaId
     }
   }
 })

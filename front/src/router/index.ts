@@ -11,6 +11,7 @@ import BrandList from '../views/admin/marcas/List.vue'
 import Caixa from '../views/admin/caixa/Index.vue'
 import Categorias from '../views/admin/categorias/List.vue'
 import Subcategorias from '../views/admin/subcategorias/List.vue'
+import RelatorioVendas from '../views/admin/relatoriovendas/List.vue'
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -76,6 +77,12 @@ const routes: Array<RouteRecordRaw> = [
         name: 'admin.user.list',
 
         component: UserList
+      },
+      {
+        path: 'relatorios/vendas',
+        name: 'admin.relatorios.vendas',
+
+        component: RelatorioVendas
       }
     ]
   },

@@ -176,18 +176,22 @@ export default defineComponent({
     const { entities, fetchEntities, columns } = usePagination('/produtos/marcas', [{
       key: 'id',
       label: '#',
-      type: 'numeric'
+      type: 'numeric',
+      width: '10%'
     }, {
       key: 'nome',
-      label: 'Nome'
+      label: 'Nome',
+      width: '60%'
     }, {
       key: 'data_atualizacao',
       label: 'Atualizado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }, {
       key: 'data_criacao',
       label: 'Criado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }])
 
     const onSubmit = handleSubmit(async ({ nome }) => {

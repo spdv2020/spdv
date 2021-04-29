@@ -6,6 +6,7 @@ export interface Column {
   key: string;
   label: string;
   type?: 'string' | 'numeric' | 'date' | 'datetime' | 'money';
+  width?: string;
 }
 
 export interface State {

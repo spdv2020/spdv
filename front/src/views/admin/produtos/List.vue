@@ -264,22 +264,31 @@ export default defineComponent({
     const { entities, fetchEntities, columns } = usePagination('/produtos', [{
       key: 'id',
       label: '#',
-      type: 'numeric'
+      type: 'numeric',
+      width: '10%'
     }, {
       key: 'nome',
-      label: 'Nome'
+      label: 'Nome',
+      width: '35%'
+    }, {
+      key: 'codigo_barras',
+      label: 'Código de barras',
+      width: '15%'
     }, {
       key: 'valor_unit',
       label: 'Preço (R$)',
-      type: 'money'
+      type: 'money',
+      width: '10%'
     }, {
       key: 'data_atualizacao',
       label: 'Atualizado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }, {
       key: 'data_criacao',
       label: 'Criado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }])
 
     const onSubmit = handleSubmit(async ({ nome, valor_unit, codigo_barras, marca_id }) => {

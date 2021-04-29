@@ -156,6 +156,7 @@ response = {
     'caixa_id': caixa['id'],
     'caixa_total': caixa['total'],
     'venda': {
+      'venda_id': venda['id'],
       'total': venda['total'],
       'produtos': produtos
     }

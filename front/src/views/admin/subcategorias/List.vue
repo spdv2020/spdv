@@ -57,7 +57,7 @@
               <div class="modal-dialog" role="document">
                 <div class="modal-content">
                   <div class="modal-header">
-                    <h5 class="modal-title">{{ selected === null ? 'Cadastrar marca' : 'Editar marca' }}</h5>
+                    <h5 class="modal-title">{{ selected === null ? 'Cadastrar subcategoria' : 'Editar subcategoria' }}</h5>
                     <button class="close" type="button" @click="close()" aria-label="Close">
                       <span aria-hidden="true">×</span>
                     </button>
@@ -217,21 +217,26 @@ export default defineComponent({
     const { entities, fetchEntities, columns } = usePagination('/produtos/subcategorias', [{
       key: 'id',
       label: '#',
-      type: 'numeric'
+      type: 'numeric',
+      width: '10%'
     }, {
       key: 'nome',
-      label: 'Nome'
+      label: 'Nome',
+      width: '30%'
     }, {
       key: 'categoria',
-      label: 'Categoria'
+      label: 'Categoria',
+      width: '30%'
     }, {
       key: 'data_atualizacao',
       label: 'Atualizado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }, {
       key: 'data_criacao',
       label: 'Criado em',
-      type: 'datetime'
+      type: 'datetime',
+      width: '15%'
     }])
 
     const onSubmit = handleSubmit(async ({ nome, categoria_id }) => {

@@ -83,7 +83,13 @@
                 type="text"
                 class="form-control"
                 autocomplete="off"
+                ref="cpfClienteRef"
+                v-model="cpfCliente"
+                :class="{ 'is-invalid': !!cpfClienteError }"
               />
+              <div class="invalid-feedback">
+                <small>{{ cpfClienteError || 'default' }}</small>
+              </div>
             </div>
           </div>
           <div class="modal-footer">
@@ -101,22 +107,29 @@ import { defineComponent, onMounted, ref, computed, watch } from 'vue'
 
 import InputMask from 'inputmask'
 
+import BrV from 'br-validations'
+
 export default defineComponent({
   name: 'Venda',
   props: {
     total: {
       type: String,
       required: true
+    },
+    venda_id: {
+      type: Number
     }
   },
   emits: ['submit', 'close'],
   setup (props, ctx) {
     const valorDescontoRef = ref<Element>()
     const valorRecebidoRef = ref<Element>()
+    const cpfClienteRef = ref<Element>()
 
     const valorDesconto = ref('0.00')
     const valorRecebido = ref('0.00')
     const metodoPagamento = ref('DINHEIRO')
+    const cpfCliente = ref('')
 
     const valorSubtotalNumber = computed(() => Number(props.total.replace(/,/, '.')) || 0)
     const valorDescontoNumber = computed(() => Number(valorDesconto.value) || 0)
@@ -159,6 +172,17 @@ export default defineComponent({
       return ''
     })
 
+    const cpfClienteError = computed(() => {
+      const cpf = cpfCliente.value.replace(/[^0-9]/g, '')
+      if (cpf.length > 0) {
+        if (!BrV.cpf.validate(cpfCliente.value)) {
+          return 'O CPF precisa ser válido'
+        }
+      }
+
+      return ''
+    })
+
     watch(() => metodoPagamento.value, (metodoPagamento) => {
       console.log(metodoPagamento)
       if (['DEBITO', 'CREDITO'].indexOf(metodoPagamento) !== -1) {
@@ -168,6 +192,19 @@ export default defineComponent({
       }
     })
 
+    watch(() => valorDesconto.value, () => {
+      if (['DEBITO', 'CREDITO'].indexOf(metodoPagamento.value) !== -1) {
+        valorRecebido.value = valorFinalNumber.value.toFixed(2)
+      }
+    })
+
+    watch(() => props.venda_id, () => {
+      valorDesconto.value = '0.00'
+      valorRecebido.value = '0.00'
+      metodoPagamento.value = 'DINHEIRO'
+      cpfCliente.value = ''
+    })
+
     onMounted(() => {
       const im = new InputMask('decimal', {
         rightAlign: false,
@@ -175,16 +212,26 @@ export default defineComponent({
       })
       im.mask(valorDescontoRef.value as HTMLElement)
       im.mask(valorRecebidoRef.value as HTMLElement)
+
+      const imCPF = new InputMask('999.999.999-99')
+      imCPF.mask(cpfClienteRef.value as HTMLElement)
     })
 
     function closeFecharVenda () {
+      valorDesconto.value = '0.00'
+      valorRecebido.value = '0.00'
+      metodoPagamento.value = 'DINHEIRO'
+      cpfCliente.value = ''
       ctx.emit('close')
     }
 
     const fecharVenda = () => {
-      if (!valorDescontoError.value) {
+      if (!valorDescontoError.value && !valorRecebidoError.value && !cpfClienteError.value) {
         ctx.emit('submit', {
-          valorDesconto: valorSubtotalNumber
+          valorDesconto: valorDescontoNumber.value,
+          valorRecebido: valorRecebidoNumber.value,
+          metodoPagamento: metodoPagamento.value,
+          cpfCliente: cpfCliente.value.replace(/[^0-9]/g, '')
         })
       }
     }
@@ -200,7 +247,10 @@ export default defineComponent({
       metodoPagamento,
       valorRecebido,
       valorRecebidoError,
-      valorTroco
+      valorTroco,
+      cpfClienteRef,
+      cpfCliente,
+      cpfClienteError
     }
   }
 })

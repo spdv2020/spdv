@@ -2312,6 +2312,11 @@ bootstrap@^4.6.0:
   resolved "https://registry.yarnpkg.com/bootstrap/-/bootstrap-4.6.0.tgz#97b9f29ac98f98dfa43bf7468262d84392552fd7"
   integrity sha512-Io55IuQY3kydzHtbGvQya3H+KorS/M9rSNyfCGCg9WZ4pyT/lCxIlpJgG1GXW/PswzC84Tr2fBYi+7+jFVQQBw==
 
+br-validations@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/br-validations/-/br-validations-0.3.1.tgz#4e45a4e074adaeea2b7e088bc0e37ade9b76364d"
+  integrity sha1-TkWk4HStruorfgiLwON63pt2Nk0=
+
 brace-expansion@^1.1.7:
   version "1.1.11"
   resolved "https://registry.yarnpkg.com/brace-expansion/-/brace-expansion-1.1.11.tgz#3c7fcbf529d87226f3d2f52b966ff5271eb441dd"
@@ -2675,6 +2680,11 @@ chardet@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/chardet/-/chardet-0.7.0.tgz#90094849f0937f2eedc2425d0d28a9e5f0cbad9e"
   integrity sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==
+
+chart.js@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/chart.js/-/chart.js-3.2.0.tgz#3d0a4b62b6bee428f8547db6aa68c792b130c260"
+  integrity sha512-Ml3R47TvOPW6gQ6T8mg/uPvyOASPpPVVF6xb7ZyHkek1c6kJIT5ScT559afXoDf6uwtpDR2BpCommkA5KT8ODg==
 
 check-error@^1.0.2:
   version "1.0.2"
